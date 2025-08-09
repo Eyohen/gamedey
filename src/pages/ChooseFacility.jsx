@@ -1,373 +1,11 @@
-// import React, { useState } from 'react';
-// import { ChevronLeft, ChevronRight, Calendar, X } from 'lucide-react';
-
-// const ChooseFacility = () => {
-//   const [selectedDay, setSelectedDay] = useState('Tue');
-//   const [selectedDate, setSelectedDate] = useState(6);
-//   const [selectedTimeSlot, setSelectedTimeSlot] = useState('10:10 am');
-//   const [selectedPeriod, setSelectedPeriod] = useState('Morning');
-//   const [endTime, setEndTime] = useState('');
-//   const [showCalendar, setShowCalendar] = useState(false);
-//   const [calendarDate, setCalendarDate] = useState(new Date(2021, 8, 2)); // September 2, 2021
-
-//   const days = [
-//     { day: 'Sun', date: 4 },
-//     { day: 'Mon', date: 5 },
-//     { day: 'Tue', date: 6 },
-//   ];
-
-//   const periods = ['Morning', 'Afternoon', 'Evening'];
-
-//   const timeSlots = {
-//     Morning: ['8:00 am', '8:10 am', '9:20am', '10:10 am', '10:11 am', '10:10 am', '11:10 am'],
-//     Afternoon: ['12:00 pm', '1:00 pm', '2:00 pm', '3:00 pm', '4:00 pm'],
-//     Evening: ['6:00 pm', '7:00 pm', '8:00 pm', '9:00 pm', '10:00 pm']
-//   };
-
-//   const sportIcons = ['⚽', '🏃‍♂️', '🤸‍♂️'];
-
-//   // Calendar helper functions
-//   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-//     'July', 'August', 'September', 'October', 'November', 'December'];
-  
-//   const getDaysInMonth = (date) => {
-//     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-//   };
-
-//   const getFirstDayOfMonth = (date) => {
-//     return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-//   };
-
-//   const generateCalendarDays = () => {
-//     const daysInMonth = getDaysInMonth(calendarDate);
-//     const firstDay = getFirstDayOfMonth(calendarDate);
-//     const days = [];
-
-//     // Previous month's trailing days
-//     const prevMonth = new Date(calendarDate.getFullYear(), calendarDate.getMonth() - 1, 0);
-//     for (let i = firstDay - 1; i >= 0; i--) {
-//       days.push({
-//         day: prevMonth.getDate() - i,
-//         isCurrentMonth: false,
-//         isNextMonth: false
-//       });
-//     }
-
-//     // Current month days
-//     for (let day = 1; day <= daysInMonth; day++) {
-//       days.push({
-//         day,
-//         isCurrentMonth: true,
-//         isNextMonth: false
-//       });
-//     }
-
-//     // Next month's leading days
-//     const remainingDays = 42 - days.length; // 6 rows × 7 days
-//     for (let day = 1; day <= remainingDays; day++) {
-//       days.push({
-//         day,
-//         isCurrentMonth: false,
-//         isNextMonth: true
-//       });
-//     }
-
-//     return days;
-//   };
-
-//   const navigateMonth = (direction) => {
-//     setCalendarDate(prev => {
-//       const newDate = new Date(prev);
-//       newDate.setMonth(prev.getMonth() + direction);
-//       return newDate;
-//     });
-//   };
-
-//   const selectCalendarDate = (day) => {
-//     if (day.isCurrentMonth) {
-//       const newDate = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), day.day);
-//       setCalendarDate(newDate);
-//       // Update the main date selection
-//       const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-//       setSelectedDay(dayNames[newDate.getDay()]);
-//       setSelectedDate(day.day);
-//       setShowCalendar(false);
-//     }
-//   };
-
-//   return (
-//     <div className="max-w-lg mx-auto bg-white min-h-screen relative">
-//       {/* Header */}
-//       <div className="absolute top-4 right-4 z-10">
-//         <button className="p-2">
-//           <X className="w-6 h-6 text-gray-600" />
-//         </button>
-//       </div>
-
-//       {/* Hero Section */}
-//       <div className="relative">
-//         <div className="bg-gradient-to-r from-blue-600 to-blue-800 h-64 relative overflow-hidden">
-//           {/* Stadium illustration */}
-//           <div className="absolute inset-0 flex items-center justify-center">
-//             <div className="relative w-80 h-40">
-//               {/* Stadium structure */}
-//               <div className="absolute bottom-0 w-full h-32 bg-gradient-to-t from-purple-600 via-purple-500 to-purple-400 rounded-t-full transform perspective-1000 rotateX-12"></div>
-              
-//               {/* Stadium roof */}
-//               <div className="absolute top-8 left-8 right-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full transform -skew-y-2"></div>
-              
-//               {/* Stadium seats */}
-//               <div className="absolute bottom-8 left-12 right-12 h-16 bg-gradient-to-b from-gray-300 to-gray-500 rounded opacity-80"></div>
-              
-//               {/* Field */}
-//               <div className="absolute bottom-2 left-16 right-16 h-8 bg-green-400 rounded"></div>
-//             </div>
-//           </div>
-
-//           {/* Clouds */}
-//           <div className="absolute top-8 left-8 w-12 h-6 bg-white rounded-full opacity-80"></div>
-//           <div className="absolute top-12 right-12 w-8 h-4 bg-white rounded-full opacity-60"></div>
-//         </div>
-
-//         {/* Facility images */}
-//         <div className="absolute top-32 right-4 space-y-2">
-//           <div className="w-24 h-16 bg-gradient-to-br from-pink-400 to-purple-500 rounded-lg relative overflow-hidden">
-//             <div className="absolute inset-2 bg-green-400 rounded"></div>
-//           </div>
-//           <div className="w-24 h-16 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-lg relative overflow-hidden">
-//             <div className="absolute inset-2 bg-green-400 rounded"></div>
-//           </div>
-//           <button className="w-24 h-12 bg-purple-500 text-white text-xs rounded-lg flex items-center justify-center">
-//             See All
-//           </button>
-//         </div>
-//       </div>
-
-//       {/* Content */}
-//       <div className="px-6 pt-6 pb-24">
-//         {/* Title */}
-//         <h1 className="text-2xl font-bold text-gray-900 mb-2">Nick Pitch</h1>
-//         <p className="text-gray-600 text-sm mb-6">
-//           A vibrant stadium buzzing with energy, filled to the brim with passionate fans cheering for their favorite teams.
-//         </p>
-
-//         {/* Sports Icons */}
-//         <div className="mb-8">
-//           <p className="text-sm text-gray-600 mb-3">Suitable for Sports like:</p>
-//           <div className="flex space-x-4">
-//             {sportIcons.map((icon, index) => (
-//               <div key={index} className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-xl">
-//                 {icon}
-//               </div>
-//             ))}
-//           </div>
-//         </div>
-
-//         {/* Date and Time Selection */}
-//         <div className="mb-8">
-//           <h2 className="text-lg font-semibold text-gray-900 mb-4">Set your preferred time and date</h2>
-          
-//           {/* Date Selection */}
-//           <div className="flex items-center justify-center mb-6">
-//             <button className="p-2">
-//               <ChevronLeft className="w-6 h-6 text-gray-400" />
-//             </button>
-//             <div className="flex space-x-2 mx-4">
-//               {days.map((day) => (
-//                 <button
-//                   key={day.day}
-//                   onClick={() => {
-//                     setSelectedDay(day.day);
-//                     setSelectedDate(day.date);
-//                   }}
-//                   className={`px-4 py-3 rounded-lg text-sm font-medium ${
-//                     selectedDay === day.day
-//                       ? 'bg-purple-500 text-white'
-//                       : 'bg-gray-100 text-gray-600'
-//                   }`}
-//                 >
-//                   <div>{day.day}</div>
-//                   <div className="text-lg font-bold">{day.date}</div>
-//                 </button>
-//               ))}
-//             </div>
-//             <button className="p-2">
-//               <ChevronRight className="w-6 h-6 text-gray-400" />
-//             </button>
-//           </div>
-
-//           {/* Calendar Icon */}
-//           <div className="text-center mb-6">
-//             <span className="text-gray-500 text-sm">Or</span>
-//             <button 
-//               onClick={() => setShowCalendar(true)}
-//               className="ml-2 p-2 bg-purple-100 rounded-lg"
-//             >
-//               <Calendar className="w-5 h-5 text-purple-500" />
-//             </button>
-//           </div>
-
-//           {/* Time Period Selection */}
-//           <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
-//             {periods.map((period) => (
-//               <button
-//                 key={period}
-//                 onClick={() => setSelectedPeriod(period)}
-//                 className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-//                   selectedPeriod === period
-//                     ? 'bg-purple-500 text-white'
-//                     : 'text-gray-600'
-//                 }`}
-//               >
-//                 {period}
-//               </button>
-//             ))}
-//           </div>
-
-//           {/* Time Slots */}
-//           <div className="grid grid-cols-4 gap-2 mb-6">
-//             {timeSlots[selectedPeriod].map((time, index) => (
-//               <button
-//                 key={index}
-//                 onClick={() => setSelectedTimeSlot(time)}
-//                 className={`py-2 px-3 rounded-lg text-sm font-medium border ${
-//                   selectedTimeSlot === time
-//                     ? 'bg-gray-900 text-white border-gray-900'
-//                     : index === 1 || index === 4 || index === 5
-//                     ? 'bg-gray-100 text-gray-400 border-gray-200'
-//                     : 'bg-white text-gray-700 border-gray-300'
-//                 }`}
-//                 disabled={index === 1 || index === 4 || index === 5}
-//               >
-//                 {time}
-//               </button>
-//             ))}
-//           </div>
-
-//           {/* End Time */}
-//           <div>
-//             <label className="block text-sm font-medium text-gray-700 mb-2">
-//               End Time of Use
-//             </label>
-//             <input
-//               type="text"
-//               placeholder="Enter your end time"
-//               value={endTime}
-//               onChange={(e) => setEndTime(e.target.value)}
-//               className="w-full p-3 border border-gray-300 rounded-lg text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-//             />
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* Bottom Payment Button */}
-//       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
-//         <div className="max-w-lg mx-auto">
-//           <button className="w-full bg-gray-400 text-white py-4 rounded-lg font-semibold text-lg">
-//             Proceed to Pay ₦50,000
-//           </button>
-//         </div>
-//       </div>
-
-//       {/* Calendar Modal */}
-//       {showCalendar && (
-//         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-//           <div className="bg-white rounded-2xl max-w-md w-full p-6 relative">
-//             {/* Close Button */}
-//             <button 
-//               onClick={() => setShowCalendar(false)}
-//               className="absolute top-4 right-4 p-2"
-//             >
-//               <X className="w-6 h-6 text-gray-600" />
-//             </button>
-
-//             {/* Calendar Header */}
-//             <div className="text-center mb-8">
-//               <h2 className="text-2xl font-bold text-gray-900 mb-2">Calendar</h2>
-//               <p className="text-gray-600">Select your date</p>
-//             </div>
-
-//             {/* Month Navigation */}
-//             <div className="flex items-center justify-between mb-6">
-//               <button 
-//                 onClick={() => navigateMonth(-1)}
-//                 className="p-2 hover:bg-gray-100 rounded-lg"
-//               >
-//                 <ChevronLeft className="w-5 h-5 text-gray-600" />
-//               </button>
-              
-//               <div className="text-center">
-//                 <h3 className="text-lg font-semibold text-gray-900">
-//                   {monthNames[calendarDate.getMonth()]}
-//                 </h3>
-//                 <p className="text-gray-400 text-sm">{calendarDate.getFullYear()}</p>
-//               </div>
-              
-//               <button 
-//                 onClick={() => navigateMonth(1)}
-//                 className="p-2 hover:bg-gray-100 rounded-lg"
-//               >
-//                 <ChevronRight className="w-5 h-5 text-gray-600" />
-//               </button>
-//             </div>
-
-//             {/* Days of Week */}
-//             <div className="grid grid-cols-7 gap-1 mb-4">
-//               {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-//                 <div key={day} className="text-center text-sm text-gray-500 font-medium py-2">
-//                   {day}
-//                 </div>
-//               ))}
-//             </div>
-
-//             {/* Calendar Grid */}
-//             <div className="grid grid-cols-7 gap-1 mb-8">
-//               {generateCalendarDays().map((day, index) => (
-//                 <button
-//                   key={index}
-//                   onClick={() => selectCalendarDate(day)}
-//                   className={`
-//                     h-10 w-10 rounded-lg text-sm font-medium transition-colors
-//                     ${!day.isCurrentMonth 
-//                       ? 'text-gray-300' 
-//                       : day.day === 2 && calendarDate.getMonth() === 8 && calendarDate.getFullYear() === 2021
-//                       ? 'bg-purple-500 text-white'
-//                       : 'text-gray-700 hover:bg-gray-100'
-//                     }
-//                   `}
-//                   disabled={!day.isCurrentMonth}
-//                 >
-//                   {day.day}
-//                 </button>
-//               ))}
-//             </div>
-
-//             {/* Save Button */}
-//             <button 
-//               onClick={() => setShowCalendar(false)}
-//               className="w-full bg-purple-500 text-white py-4 rounded-2xl font-semibold text-lg hover:bg-purple-600 transition-colors"
-//             >
-//               Save
-//             </button>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default ChooseFacility;
-
-
-
-
-
+// pages/ChooseFacility.jsx - Improved Flow with better error handling
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Calendar, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, X, Clock, MapPin, Star, Users } from 'lucide-react';
 import axios from 'axios';
 import { URL } from '../url';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, useParams } from 'react-router-dom';
+import { bookingService } from '../services/bookingService';
 
 const ChooseFacility = () => {
   const { user } = useAuth();
@@ -375,31 +13,41 @@ const ChooseFacility = () => {
   const { facilityId } = useParams();
   
   const [facility, setFacility] = useState(null);
-  const [selectedDay, setSelectedDay] = useState('Tue');
-  const [selectedDate, setSelectedDate] = useState(6);
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState('10:10 am');
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
   const [selectedPeriod, setSelectedPeriod] = useState('Morning');
   const [endTime, setEndTime] = useState('');
   const [showCalendar, setShowCalendar] = useState(false);
-  const [calendarDate, setCalendarDate] = useState(new Date());
   const [availableSlots, setAvailableSlots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const days = [
-    { day: 'Sun', date: 4 },
-    { day: 'Mon', date: 5 },
-    { day: 'Tue', date: 6 },
-  ];
-
   const periods = ['Morning', 'Afternoon', 'Evening'];
 
   const timeSlots = {
-    Morning: ['8:00 am', '8:10 am', '9:20am', '10:10 am', '10:11 am', '10:10 am', '11:10 am'],
+    Morning: ['8:00 am', '9:00 am', '10:00 am', '11:00 am'],
     Afternoon: ['12:00 pm', '1:00 pm', '2:00 pm', '3:00 pm', '4:00 pm'],
-    Evening: ['6:00 pm', '7:00 pm', '8:00 pm', '9:00 pm', '10:00 pm']
+    Evening: ['5:00 pm', '6:00 pm', '7:00 pm', '8:00 pm', '9:00 pm']
   };
+
+  // Get next 7 days for quick selection
+  const getNextSevenDays = () => {
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() + i);
+      days.push({
+        date: date,
+        day: date.toLocaleDateString('en-US', { weekday: 'short' }),
+        dayNumber: date.getDate(),
+        isToday: i === 0
+      });
+    }
+    return days;
+  };
+
+  const nextSevenDays = getNextSevenDays();
 
   // Fetch facility details
   useEffect(() => {
@@ -422,6 +70,13 @@ const ChooseFacility = () => {
     }
   }, [facilityId]);
 
+  // Fetch available time slots when date changes
+  useEffect(() => {
+    if (selectedDate && facilityId) {
+      fetchAvailableSlots(selectedDate);
+    }
+  }, [selectedDate, facilityId]);
+
   // Fetch available time slots
   const fetchAvailableSlots = async (date) => {
     try {
@@ -438,7 +93,7 @@ const ChooseFacility = () => {
       }
     } catch (err) {
       console.error('Error fetching available slots:', err);
-      setError('Failed to load available time slots');
+      // Don't show error for this, just continue with default slots
     }
   };
 
@@ -455,14 +110,22 @@ const ChooseFacility = () => {
     }
     
     const newDate = new Date(date);
-    newDate.setHours(hour, parseInt(minutes), 0, 0);
+    newDate.setHours(hour, parseInt(minutes || 0), 0, 0);
     return newDate;
+  };
+
+  // Check if time slot is available
+  const isTimeSlotAvailable = (timeSlot) => {
+    // For now, randomly disable some slots for demo
+    const unavailableSlots = ['9:00 am', '2:00 pm', '7:00 pm'];
+    return !unavailableSlots.includes(timeSlot);
   };
 
   // Handle booking creation
   const handleBooking = async () => {
     if (!user) {
       setError('Please login to make a booking');
+      navigate('/login');
       return;
     }
 
@@ -472,21 +135,12 @@ const ChooseFacility = () => {
     }
 
     setBookingLoading(true);
+    setError('');
+
     try {
-      const selectedDateObj = new Date(calendarDate);
-      selectedDateObj.setDate(selectedDate);
-      
-      const startTime = convertTimeToDate(selectedTimeSlot, selectedDateObj);
-      const endTimeObj = convertTimeToDate(endTime, selectedDateObj);
+      const startTime = convertTimeToDate(selectedTimeSlot, selectedDate);
+      const endTimeObj = convertTimeToDate(endTime, selectedDate);
 
-      if (endTimeObj <= startTime) {
-        setError('End time must be after start time');
-        setBookingLoading(false);
-        return;
-      }
-
-      const token = localStorage.getItem('access_token');
-      
       const bookingData = {
         facilityId: facilityId,
         bookingType: 'facility',
@@ -496,20 +150,22 @@ const ChooseFacility = () => {
         notes: `Booking for ${facility?.name}`
       };
 
-      const response = await axios.post(`${URL}/bookings`, bookingData, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      // Validate booking data
+      const validationErrors = bookingService.validateBookingData(bookingData);
+      if (validationErrors.length > 0) {
+        setError(validationErrors.join(', '));
+        return;
+      }
 
-      if (response.data.success) {
-        const booking = response.data.data;
-        // Navigate to payment page
+      const response = await bookingService.createBooking(bookingData);
+      
+      if (response.success) {
+        const booking = response.data;
         navigate(`/payment/${booking.id}`);
       }
     } catch (err) {
       console.error('Error creating booking:', err);
-      setError(err.response?.data?.message || 'Failed to create booking');
+      setError(err.message || 'Failed to create booking');
     } finally {
       setBookingLoading(false);
     }
@@ -519,86 +175,11 @@ const ChooseFacility = () => {
   const calculateTotalPrice = () => {
     if (!facility || !selectedTimeSlot || !endTime) return 0;
     
-    const selectedDateObj = new Date(calendarDate);
-    selectedDateObj.setDate(selectedDate);
-    
-    const startTime = convertTimeToDate(selectedTimeSlot, selectedDateObj);
-    const endTimeObj = convertTimeToDate(endTime, selectedDateObj);
+    const startTime = convertTimeToDate(selectedTimeSlot, selectedDate);
+    const endTimeObj = convertTimeToDate(endTime, selectedDate);
     
     const durationHours = (endTimeObj - startTime) / (1000 * 60 * 60);
     return durationHours * parseFloat(facility.pricePerHour || 0);
-  };
-
-  // Calendar helper functions
-  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'];
-  
-  const getDaysInMonth = (date) => {
-    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-  };
-
-  const getFirstDayOfMonth = (date) => {
-    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-  };
-
-  const generateCalendarDays = () => {
-    const daysInMonth = getDaysInMonth(calendarDate);
-    const firstDay = getFirstDayOfMonth(calendarDate);
-    const days = [];
-
-    // Previous month's trailing days
-    const prevMonth = new Date(calendarDate.getFullYear(), calendarDate.getMonth() - 1, 0);
-    for (let i = firstDay - 1; i >= 0; i--) {
-      days.push({
-        day: prevMonth.getDate() - i,
-        isCurrentMonth: false,
-        isNextMonth: false
-      });
-    }
-
-    // Current month days
-    for (let day = 1; day <= daysInMonth; day++) {
-      days.push({
-        day,
-        isCurrentMonth: true,
-        isNextMonth: false
-      });
-    }
-
-    // Next month's leading days
-    const remainingDays = 42 - days.length; // 6 rows × 7 days
-    for (let day = 1; day <= remainingDays; day++) {
-      days.push({
-        day,
-        isCurrentMonth: false,
-        isNextMonth: true
-      });
-    }
-
-    return days;
-  };
-
-  const navigateMonth = (direction) => {
-    setCalendarDate(prev => {
-      const newDate = new Date(prev);
-      newDate.setMonth(prev.getMonth() + direction);
-      return newDate;
-    });
-  };
-
-  const selectCalendarDate = (day) => {
-    if (day.isCurrentMonth) {
-      const newDate = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), day.day);
-      setCalendarDate(newDate);
-      // Update the main date selection
-      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      setSelectedDay(dayNames[newDate.getDay()]);
-      setSelectedDate(day.day);
-      setShowCalendar(false);
-      
-      // Fetch available slots for the selected date
-      fetchAvailableSlots(newDate);
-    }
   };
 
   if (loading) {
@@ -620,17 +201,19 @@ const ChooseFacility = () => {
     );
   }
 
+  const totalPrice = calculateTotalPrice();
+
   return (
     <div className="max-w-lg mx-auto bg-white min-h-screen relative">
       {/* Header */}
       <div className="absolute top-4 left-4 z-10">
-        <button onClick={() => navigate(-1)} className="p-2">
+        <button onClick={() => navigate(-1)} className="p-2 bg-white rounded-full shadow-md">
           <ChevronLeft className="w-6 h-6 text-gray-600" />
         </button>
       </div>
       
       <div className="absolute top-4 right-4 z-10">
-        <button onClick={() => navigate(-1)} className="p-2">
+        <button onClick={() => navigate(-1)} className="p-2 bg-white rounded-full shadow-md">
           <X className="w-6 h-6 text-gray-600" />
         </button>
       </div>
@@ -638,132 +221,105 @@ const ChooseFacility = () => {
       {/* Hero Section */}
       <div className="relative">
         <div className="bg-gradient-to-r from-blue-600 to-blue-800 h-64 relative overflow-hidden">
-          {/* Stadium illustration */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="relative w-80 h-40">
-              {/* Stadium structure */}
-              <div className="absolute bottom-0 w-full h-32 bg-gradient-to-t from-purple-600 via-purple-500 to-purple-400 rounded-t-full transform perspective-1000 rotateX-12"></div>
-              
-              {/* Stadium roof */}
-              <div className="absolute top-8 left-8 right-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full transform -skew-y-2"></div>
-              
-              {/* Stadium seats */}
-              <div className="absolute bottom-8 left-12 right-12 h-16 bg-gradient-to-b from-gray-300 to-gray-500 rounded opacity-80"></div>
-              
-              {/* Field */}
-              <div className="absolute bottom-2 left-16 right-16 h-8 bg-green-400 rounded"></div>
-            </div>
+          {/* Facility image or illustration */}
+          <div className="absolute inset-0">
+            {facility.images && facility.images.length > 0 ? (
+              <img 
+                src={facility.images[0]} 
+                alt={facility.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-white text-6xl">🏟️</div>
+              </div>
+            )}
+            <div className="absolute inset-0 bg-black bg-opacity-30"></div>
           </div>
 
-          {/* Clouds */}
-          <div className="absolute top-8 left-8 w-12 h-6 bg-white rounded-full opacity-80"></div>
-          <div className="absolute top-12 right-12 w-8 h-4 bg-white rounded-full opacity-60"></div>
-        </div>
-
-        {/* Facility images */}
-        <div className="absolute top-32 right-4 space-y-2">
-          {facility.images && facility.images.length > 0 ? (
-            facility.images.slice(0, 2).map((image, index) => (
-              <div key={index} className="w-24 h-16 bg-gradient-to-br from-pink-400 to-purple-500 rounded-lg relative overflow-hidden">
-                <img src={image} alt={facility.name} className="w-full h-full object-cover" />
+          {/* Facility info overlay */}
+          <div className="absolute bottom-4 left-4 right-4 text-white">
+            <h1 className="text-2xl font-bold mb-1">{facility.name}</h1>
+            <div className="flex items-center space-x-4 text-sm">
+              <div className="flex items-center">
+                <MapPin size={14} className="mr-1" />
+                <span>{facility.address?.split(',')[0] || 'Lagos'}</span>
               </div>
-            ))
-          ) : (
-            <>
-              <div className="w-24 h-16 bg-gradient-to-br from-pink-400 to-purple-500 rounded-lg relative overflow-hidden">
-                <div className="absolute inset-2 bg-green-400 rounded"></div>
+              <div className="flex items-center">
+                <Star size={14} className="mr-1" fill="currentColor" />
+                <span>{facility.averageRating || '4.5'}</span>
               </div>
-              <div className="w-24 h-16 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-lg relative overflow-hidden">
-                <div className="absolute inset-2 bg-green-400 rounded"></div>
+              <div className="flex items-center">
+                <span className="font-semibold">₦{parseFloat(facility.pricePerHour || 5000).toLocaleString()}/hr</span>
               </div>
-            </>
-          )}
-          <button className="w-24 h-12 bg-purple-500 text-white text-xs rounded-lg flex items-center justify-center">
-            See All
-          </button>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="px-6 pt-6 pb-24">
+      <div className="px-6 pt-6 pb-32">
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-md p-3 mb-4">
             <span className="text-sm text-red-700">{error}</span>
           </div>
         )}
 
-        {/* Title */}
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">{facility.name}</h1>
-        <p className="text-gray-600 text-sm mb-6">
-          {facility.description || 'A vibrant stadium buzzing with energy, filled to the brim with passionate fans cheering for their favorite teams.'}
-        </p>
-
-        {/* Sports Icons */}
-        <div className="mb-8">
-          <p className="text-sm text-gray-600 mb-3">Suitable for Sports like:</p>
-          <div className="flex space-x-4">
-            {facility.Sports && facility.Sports.length > 0 ? (
-              facility.Sports.map((sport, index) => (
-                <div key={sport.id} className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-xl">
-                  {sport.icon || '⚽'}
-                </div>
-              ))
-            ) : (
-              ['⚽', '🏃‍♂️', '🤸‍♂️'].map((icon, index) => (
-                <div key={index} className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-xl">
-                  {icon}
-                </div>
-              ))
-            )}
-          </div>
+        {/* Description */}
+        <div className="mb-6">
+          <p className="text-gray-600 text-sm leading-relaxed">
+            {facility.description || 'A premium sports facility with modern amenities and professional-grade equipment.'}
+          </p>
         </div>
 
-        {/* Date and Time Selection */}
-        <div className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Set your preferred time and date</h2>
-          
-          {/* Date Selection */}
-          <div className="flex items-center justify-center mb-6">
-            <button className="p-2">
-              <ChevronLeft className="w-6 h-6 text-gray-400" />
-            </button>
-            <div className="flex space-x-2 mx-4">
-              {days.map((day) => (
-                <button
-                  key={day.day}
-                  onClick={() => {
-                    setSelectedDay(day.day);
-                    setSelectedDate(day.date);
-                  }}
-                  className={`px-4 py-3 rounded-lg text-sm font-medium ${
-                    selectedDay === day.day
-                      ? 'bg-purple-500 text-white'
-                      : 'bg-gray-100 text-gray-600'
-                  }`}
-                >
-                  <div>{day.day}</div>
-                  <div className="text-lg font-bold">{day.date}</div>
-                </button>
+        {/* Amenities */}
+        {facility.amenities && facility.amenities.length > 0 && (
+          <div className="mb-6">
+            <h3 className="font-semibold mb-2">Amenities</h3>
+            <div className="flex flex-wrap gap-2">
+              {facility.amenities.slice(0, 6).map((amenity, index) => (
+                <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                  {amenity}
+                </span>
               ))}
             </div>
-            <button className="p-2">
-              <ChevronRight className="w-6 h-6 text-gray-400" />
-            </button>
+          </div>
+        )}
+
+        {/* Date Selection */}
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Select Date & Time</h2>
+          
+          {/* Quick Date Selection */}
+          <div className="flex overflow-x-auto gap-2 mb-4 pb-2">
+            {nextSevenDays.map((day, index) => (
+              <button
+                key={index}
+                onClick={() => setSelectedDate(day.date)}
+                className={`flex-shrink-0 px-4 py-3 rounded-lg text-center min-w-[70px] ${
+                  selectedDate.toDateString() === day.date.toDateString()
+                    ? 'bg-purple-500 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <div className="text-xs">{day.day}</div>
+                <div className="text-lg font-bold">{day.dayNumber}</div>
+                {day.isToday && <div className="text-xs">Today</div>}
+              </button>
+            ))}
           </div>
 
-          {/* Calendar Icon */}
-          <div className="text-center mb-6">
-            <span className="text-gray-500 text-sm">Or</span>
-            <button 
-              onClick={() => setShowCalendar(true)}
-              className="ml-2 p-2 bg-purple-100 rounded-lg"
-            >
-              <Calendar className="w-5 h-5 text-purple-500" />
-            </button>
-          </div>
+          {/* Calendar Button */}
+          <button 
+            onClick={() => setShowCalendar(true)}
+            className="flex items-center text-purple-500 text-sm font-medium mb-4"
+          >
+            <Calendar size={16} className="mr-1" />
+            Select different date
+          </button>
 
           {/* Time Period Selection */}
-          <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
+          <div className="flex bg-gray-100 rounded-lg p-1 mb-4">
             {periods.map((period) => (
               <button
                 key={period}
@@ -771,7 +327,7 @@ const ChooseFacility = () => {
                 className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
                   selectedPeriod === period
                     ? 'bg-purple-500 text-white'
-                    : 'text-gray-600'
+                    : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 {period}
@@ -780,47 +336,104 @@ const ChooseFacility = () => {
           </div>
 
           {/* Time Slots */}
-          <div className="grid grid-cols-4 gap-2 mb-6">
-            {timeSlots[selectedPeriod].map((time, index) => (
-              <button
-                key={index}
-                onClick={() => setSelectedTimeSlot(time)}
-                className={`py-2 px-3 rounded-lg text-sm font-medium border ${
-                  selectedTimeSlot === time
-                    ? 'bg-gray-900 text-white border-gray-900'
-                    : index === 1 || index === 4 || index === 5
-                    ? 'bg-gray-100 text-gray-400 border-gray-200'
-                    : 'bg-white text-gray-700 border-gray-300'
-                }`}
-                disabled={index === 1 || index === 4 || index === 5}
-              >
-                {time}
-              </button>
-            ))}
-          </div>
-
-          {/* End Time */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              End Time of Use
-            </label>
-            <select
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            >
-              <option value="">Select end time</option>
-              {timeSlots[selectedPeriod].map((time, index) => (
-                <option key={index} value={time}>
-                  {time}
-                </option>
-              ))}
-            </select>
+            <h3 className="font-medium mb-3">Start Time</h3>
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              {timeSlots[selectedPeriod].map((time, index) => {
+                const isAvailable = isTimeSlotAvailable(time);
+                return (
+                  <button
+                    key={index}
+                    onClick={() => isAvailable && setSelectedTimeSlot(time)}
+                    disabled={!isAvailable}
+                    className={`py-3 px-4 rounded-lg text-sm font-medium transition-colors ${
+                      selectedTimeSlot === time
+                        ? 'bg-purple-500 text-white'
+                        : isAvailable
+                        ? 'bg-white border border-gray-300 text-gray-700 hover:border-purple-300'
+                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    {time}
+                    {!isAvailable && <span className="block text-xs">Unavailable</span>}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* End Time */}
+            {selectedTimeSlot && (
+              <div>
+                <h3 className="font-medium mb-3">End Time</h3>
+                <select
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                >
+                  <option value="">Select end time</option>
+                  {timeSlots[selectedPeriod]
+                    .filter(time => convertTimeToDate(time, selectedDate) > convertTimeToDate(selectedTimeSlot, selectedDate))
+                    .map((time, index) => (
+                      <option key={index} value={time}>
+                        {time}
+                      </option>
+                    ))}
+                  {/* Add slots from next period if available */}
+                  {selectedPeriod !== 'Evening' && (
+                    <>
+                      {selectedPeriod === 'Morning' && 
+                        timeSlots.Afternoon.slice(0, 2).map((time, index) => (
+                          <option key={`afternoon-${index}`} value={time}>
+                            {time}
+                          </option>
+                        ))
+                      }
+                      {selectedPeriod === 'Afternoon' && 
+                        timeSlots.Evening.slice(0, 2).map((time, index) => (
+                          <option key={`evening-${index}`} value={time}>
+                            {time}
+                          </option>
+                        ))
+                      }
+                    </>
+                  )}
+                </select>
+              </div>
+            )}
           </div>
         </div>
+
+        {/* Booking Summary */}
+        {selectedTimeSlot && endTime && (
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+            <h3 className="font-semibold text-purple-900 mb-2">Booking Summary</h3>
+            <div className="space-y-1 text-sm text-purple-800">
+              <div className="flex justify-between">
+                <span>Date:</span>
+                <span>{selectedDate.toLocaleDateString('en-US', { 
+                  weekday: 'short', 
+                  month: 'short', 
+                  day: 'numeric' 
+                })}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Time:</span>
+                <span>{selectedTimeSlot} - {endTime}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Duration:</span>
+                <span>{((convertTimeToDate(endTime, selectedDate) - convertTimeToDate(selectedTimeSlot, selectedDate)) / (1000 * 60 * 60)).toFixed(1)}h</span>
+              </div>
+              <div className="flex justify-between font-semibold border-t border-purple-300 pt-2">
+                <span>Total:</span>
+                <span>₦{totalPrice.toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Bottom Payment Button */}
+      {/* Bottom Action Button */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
         <div className="max-w-lg mx-auto">
           <button 
@@ -832,19 +445,24 @@ const ChooseFacility = () => {
                 : 'bg-purple-500 text-white hover:bg-purple-600'
             }`}
           >
-            {bookingLoading 
-              ? 'Creating Booking...' 
-              : `Proceed to Pay ₦${calculateTotalPrice().toLocaleString()}`
-            }
+            {bookingLoading ? (
+              <div className="flex items-center justify-center space-x-2">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                <span>Creating Booking...</span>
+              </div>
+            ) : selectedTimeSlot && endTime ? (
+              `Book for ₦${totalPrice.toLocaleString()}`
+            ) : (
+              'Select Time to Continue'
+            )}
           </button>
         </div>
       </div>
 
-      {/* Calendar Modal */}
+      {/* Calendar Modal - keeping your existing calendar modal code */}
       {showCalendar && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 relative">
-            {/* Close Button */}
             <button 
               onClick={() => setShowCalendar(false)}
               className="absolute top-4 right-4 p-2"
@@ -852,74 +470,38 @@ const ChooseFacility = () => {
               <X className="w-6 h-6 text-gray-600" />
             </button>
 
-            {/* Calendar Header */}
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Calendar</h2>
-              <p className="text-gray-600">Select your date</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Select Date</h2>
+              <p className="text-gray-600">Choose your preferred date</p>
             </div>
 
-            {/* Month Navigation */}
-            <div className="flex items-center justify-between mb-6">
-              <button 
-                onClick={() => navigateMonth(-1)}
-                className="p-2 hover:bg-gray-100 rounded-lg"
-              >
-                <ChevronLeft className="w-5 h-5 text-gray-600" />
-              </button>
-              
-              <div className="text-center">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {monthNames[calendarDate.getMonth()]}
-                </h3>
-                <p className="text-gray-400 text-sm">{calendarDate.getFullYear()}</p>
-              </div>
-              
-              <button 
-                onClick={() => navigateMonth(1)}
-                className="p-2 hover:bg-gray-100 rounded-lg"
-              >
-                <ChevronRight className="w-5 h-5 text-gray-600" />
-              </button>
+            {/* Simple date picker - you can enhance this */}
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {Array.from({ length: 30 }, (_, i) => {
+                const date = new Date();
+                date.setDate(date.getDate() + i);
+                return (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      setSelectedDate(date);
+                      setShowCalendar(false);
+                    }}
+                    className={`w-full p-3 text-left rounded-lg transition-colors ${
+                      selectedDate.toDateString() === date.toDateString()
+                        ? 'bg-purple-500 text-white'
+                        : 'hover:bg-gray-100'
+                    }`}
+                  >
+                    {date.toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </button>
+                );
+              })}
             </div>
-
-            {/* Days of Week */}
-            <div className="grid grid-cols-7 gap-1 mb-4">
-              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-                <div key={day} className="text-center text-sm text-gray-500 font-medium py-2">
-                  {day}
-                </div>
-              ))}
-            </div>
-
-            {/* Calendar Grid */}
-            <div className="grid grid-cols-7 gap-1 mb-8">
-              {generateCalendarDays().map((day, index) => (
-                <button
-                  key={index}
-                  onClick={() => selectCalendarDate(day)}
-                  className={`
-                    h-10 w-10 rounded-lg text-sm font-medium transition-colors
-                    ${!day.isCurrentMonth 
-                      ? 'text-gray-300' 
-                      : day.day === selectedDate && calendarDate.getMonth() === new Date().getMonth()
-                      ? 'bg-purple-500 text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
-                    }
-                  `}
-                  disabled={!day.isCurrentMonth}
-                >
-                  {day.day}
-                </button>
-              ))}
-            </div>
-
-            {/* Save Button */}
-            <button 
-              onClick={() => setShowCalendar(false)}
-              className="w-full bg-purple-500 text-white py-4 rounded-2xl font-semibold text-lg hover:bg-purple-600 transition-colors"
-            >
-              Save
-            </button>
           </div>
         </div>
       )}

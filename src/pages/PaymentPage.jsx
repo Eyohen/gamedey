@@ -1,7 +1,7 @@
-// PaymentPage.jsx - Vite Compatible with Existing UI Style
+// pages/PaymentPage.jsx - Simplified approach based on your ecommerce implementation
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, X } from 'lucide-react';
+import { ChevronLeft, X, CreditCard, Shield, CheckCircle, Clock } from 'lucide-react';
 import axios from 'axios';
 import { URL } from '../url';
 import { useAuth } from '../context/AuthContext';
@@ -21,12 +21,6 @@ const PaymentPage = () => {
     const script = document.createElement('script');
     script.src = 'https://js.paystack.co/v1/inline.js';
     script.async = true;
-    script.onload = () => {
-      console.log('Paystack script loaded successfully');
-    };
-    script.onerror = () => {
-      setError('Failed to load payment system. Please refresh the page.');
-    };
     document.body.appendChild(script);
 
     return () => {
@@ -54,11 +48,9 @@ const PaymentPage = () => {
 
         if (response.data.success) {
           setBooking(response.data.data);
-          
-          // Check if already paid
+          // Check if booking is already paid
           if (response.data.data.paymentStatus === 'paid') {
             navigate(`/booking-success/${bookingId}`);
-            return;
           }
         }
       } catch (err) {
@@ -74,99 +66,88 @@ const PaymentPage = () => {
     }
   }, [bookingId, navigate]);
 
-  // Payment verification function (separate from async context)
-  const verifyPayment = (reference, token) => {
-    axios.post(`${URL}/payments/verify`, {
-      reference: reference,
-      bookingId: booking.id
-    }, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    })
-    .then(verifyResponse => {
-      if (verifyResponse.data.success) {
-        // Payment successful, redirect to success page
-        navigate(`/booking-success/${bookingId}`);
-      } else {
-        setError('Payment verification failed. Please contact support.');
-      }
-      setProcessing(false);
-    })
-    .catch(err => {
-      console.error('Verification error:', err);
-      setError('Payment verification failed. Please contact support.');
-      setProcessing(false);
-    });
-  };
-
-  // Initialize payment and handle Paystack popup
-  const handlePayment = async () => {
-    if (!booking || !user || !window.PaystackPop) {
-      setError('Payment system not ready. Please refresh the page.');
-      return;
-    }
-
-    setProcessing(true);
-    setError('');
-
+  // Handle successful payment - Similar to your ecommerce approach
+  const handlePaystackSuccess = async (reference) => {
     try {
-      // Generate reference
-      const reference = `gamedey_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
-      // Create payment record in your backend first
       const token = localStorage.getItem('access_token');
-      const paymentData = {
+      
+      // Create a simple payment confirmation endpoint
+      const response = await axios.post(`${URL}/payments/confirm`, {
         bookingId: booking.id,
-        reference: reference,
-        amount: booking.totalAmount
-      };
-
-      const paymentResponse = await axios.post(`${URL}/payments/create-record`, paymentData, {
+        paymentReference: reference.reference,
+        paymentMethod: 'paystack'
+      }, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
 
-      if (!paymentResponse.data.success) {
-        throw new Error('Failed to create payment record');
+      if (response.data.success) {
+        // Update booking status to confirmed
+        navigate(`/booking-success/${booking.id}`);
+      } else {
+        throw new Error('Payment confirmation failed');
       }
-
-      // Initialize Paystack payment with proper function scope
-      const handler = window.PaystackPop.setup({
-        key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_your_public_key_here',
-        email: user.email,
-        amount: Math.round(parseFloat(booking.totalAmount) * 100), // Convert to kobo
-        ref: reference,
-        currency: 'NGN',
-        callback: function(response) {
-          console.log('Payment successful:', response);
-          // Call verification function without async/await
-          verifyPayment(response.reference, token);
-        },
-        onClose: function() {
-          console.log('Payment popup closed');
-          setProcessing(false);
-        },
-        metadata: {
-          bookingId: booking.id,
-          userId: user.id,
-          bookingType: booking.bookingType,
-          facilityName: booking.Facility?.name || null,
-          coachName: booking.Coach?.User ? `${booking.Coach.User.firstName} ${booking.Coach.User.lastName}` : null
-        }
-      });
-
-      handler.openIframe();
-
-    } catch (err) {
-      console.error('Payment initialization error:', err);
-      setError(err.response?.data?.message || 'Failed to initialize payment');
+    } catch (error) {
+      console.error('Payment confirmation failed:', error);
+      setError('Payment confirmation failed. Please contact support with reference: ' + reference.reference);
+    } finally {
       setProcessing(false);
     }
   };
 
-  // Format date and time (keeping your existing format)
+  const handlePaystackClose = () => {
+    setProcessing(false);
+    // Optional: Show a message that payment was cancelled
+  };
+
+  // Make payment - Simplified like your ecommerce version
+  const handleMakePayment = async () => {
+    if (!user || !booking) {
+      setError('Please login to make payment');
+      return;
+    }
+
+    setProcessing(true);
+    setError('');
+    
+    try {
+      // Initialize Paystack payment directly (no backend payment record needed initially)
+      if (!window.PaystackPop) {
+        setError('Paystack is not loaded. Please refresh the page and try again.');
+        setProcessing(false);
+        return;
+      }
+
+      const handler = window.PaystackPop.setup({
+        key: 'pk_live_1633fba5489bdc4774c767223f0e1c18d2e277f8',
+        email: user.email,
+        amount: Math.round(parseFloat(booking.totalAmount) * 100), // Convert to kobo
+        currency: 'NGN',
+        ref: `booking-${booking.id}-${Date.now()}`, // Generate reference
+        metadata: {
+          booking_id: booking.id,
+          booking_type: booking.bookingType,
+          customer_name: `${user.firstName} ${user.lastName}`,
+          facility_name: booking.Facility?.name || '',
+          coach_name: booking.Coach?.User ? `${booking.Coach.User.firstName} ${booking.Coach.User.lastName}` : ''
+        },
+        callback: function(response) {
+          console.log('Payment successful:', response);
+          handlePaystackSuccess(response);
+        },
+        onClose: handlePaystackClose
+      });
+
+      handler.openIframe();
+    } catch (err) {
+      console.error('Payment initialization failed:', err);
+      setError('Failed to initialize payment. Please try again.');
+      setProcessing(false);
+    }
+  };
+
+  // Format date and time
   const formatDateTime = (dateString) => {
     const date = new Date(dateString);
     return {
@@ -181,6 +162,25 @@ const PaymentPage = () => {
         minute: '2-digit'
       })
     };
+  };
+
+  // Calculate duration
+  const calculateDuration = () => {
+    if (!booking) return '';
+    
+    const start = new Date(booking.startTime);
+    const end = new Date(booking.endTime);
+    const durationMs = end - start;
+    const hours = Math.floor(durationMs / (1000 * 60 * 60));
+    const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours > 0 && minutes > 0) {
+      return `${hours}h ${minutes}m`;
+    } else if (hours > 0) {
+      return `${hours}h`;
+    } else {
+      return `${minutes}m`;
+    }
   };
 
   if (loading) {
@@ -203,147 +203,171 @@ const PaymentPage = () => {
   }
 
   const startDateTime = formatDateTime(booking.startTime);
+  const endDateTime = formatDateTime(booking.endTime);
 
   return (
     <div className="max-w-lg mx-auto bg-white min-h-screen relative">
-      {/* Header - keeping your existing style */}
+      {/* Header */}
       <div className="absolute top-4 left-4 z-10">
-        <button onClick={() => navigate(-1)} className="p-2">
+        <button onClick={() => navigate(-1)} className="p-2 bg-white rounded-full shadow-md">
           <ChevronLeft className="w-6 h-6 text-gray-600" />
         </button>
       </div>
       
       <div className="absolute top-4 right-4 z-10">
-        <button onClick={() => navigate(-1)} className="p-2">
+        <button onClick={() => navigate('/bookings')} className="p-2 bg-white rounded-full shadow-md">
           <X className="w-6 h-6 text-gray-600" />
         </button>
       </div>
 
-      {/* Hero Section - keeping your gradient style */}
-      <div className="relative">
-        <div className="bg-gradient-to-r from-blue-600 to-blue-800 h-64 relative overflow-hidden">
-          {/* Payment illustration */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="relative w-80 h-40">
-              {/* Credit card illustration */}
-              <div className="absolute bottom-8 w-48 h-32 bg-gradient-to-r from-purple-600 via-purple-500 to-purple-400 rounded-lg transform perspective-1000 rotateX-12"></div>
-              
-              {/* Card details */}
-              <div className="absolute bottom-12 left-8 right-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded opacity-80"></div>
-              
-              {/* Secure badge */}
-              <div className="absolute bottom-2 left-12 right-12 h-6 bg-green-400 rounded flex items-center justify-center">
-                <span className="text-xs text-white font-semibold">SECURE</span>
-              </div>
-            </div>
+      {/* Header Section */}
+      <div className="bg-gradient-to-r from-purple-600 to-purple-800 h-32 relative">
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center">
+            <CreditCard className="w-12 h-12 text-white mx-auto mb-2" />
+            <h1 className="text-white text-xl font-semibold">Complete Payment</h1>
           </div>
-
-          {/* Floating icons */}
-          <div className="absolute top-8 left-8 w-12 h-6 bg-white rounded-full opacity-80"></div>
-          <div className="absolute top-12 right-12 w-8 h-4 bg-white rounded-full opacity-60"></div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="px-6 pt-6 pb-24">
+      <div className="px-6 pt-6 pb-32">
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-md p-3 mb-4">
             <span className="text-sm text-red-700">{error}</span>
           </div>
         )}
 
-        {/* Title */}
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Complete Payment</h1>
-        <p className="text-gray-600 text-sm mb-6">
-          You're almost done! Complete your payment to confirm your booking.
-        </p>
-
-        {/* Booking Summary - keeping your card style */}
+        {/* Booking Summary */}
         <div className="border border-black rounded-xl p-4 mb-6">
           <h2 className="font-semibold text-lg mb-4">Booking Summary</h2>
           
+          {/* Service Info */}
           {booking.Facility && (
             <div className="mb-4">
-              <p className="font-medium">{booking.Facility.name}</p>
-              <p className="text-sm text-gray-500">Facility Booking</p>
+              <div className="flex items-start space-x-3">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <span className="text-2xl">🏟️</span>
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold">{booking.Facility.name}</p>
+                  <p className="text-sm text-gray-500">Facility Booking</p>
+                  {booking.Facility.address && (
+                    <p className="text-xs text-gray-500">{booking.Facility.address}</p>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
           {booking.Coach && (
             <div className="mb-4">
-              <p className="font-medium">
-                Coach {booking.Coach.User?.firstName} {booking.Coach.User?.lastName}
-              </p>
-              <p className="text-sm text-gray-500">Personal Training Session</p>
+              <div className="flex items-start space-x-3">
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                  <span className="text-2xl">👨‍🏫</span>
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold">
+                    Coach {booking.Coach.User?.firstName} {booking.Coach.User?.lastName}
+                  </p>
+                  <p className="text-sm text-gray-500">Personal Training</p>
+                </div>
+              </div>
             </div>
           )}
 
-          <div className="space-y-2 text-sm">
+          {/* Date and Time */}
+          <div className="space-y-2 text-sm border-t pt-4 mb-4">
             <div className="flex justify-between">
-              <span>Date:</span>
-              <span>{startDateTime.date}</span>
+              <span className="text-gray-600">Date:</span>
+              <span className="font-medium">{startDateTime.date}</span>
             </div>
             <div className="flex justify-between">
-              <span>Time:</span>
-              <span>{startDateTime.time}</span>
+              <span className="text-gray-600">Time:</span>
+              <span className="font-medium">{startDateTime.time} - {endDateTime.time}</span>
             </div>
             <div className="flex justify-between">
-              <span>Participants:</span>
-              <span>{booking.participantsCount}</span>
+              <span className="text-gray-600">Duration:</span>
+              <span className="font-medium">{calculateDuration()}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Participants:</span>
+              <span className="font-medium">{booking.participantsCount}</span>
             </div>
           </div>
 
-          <div className="border-t mt-4 pt-4">
-            <div className="flex justify-between font-semibold text-lg">
-              <span>Total Amount:</span>
-              <span className="text-[#7042D2]">₦{parseFloat(booking.totalAmount).toLocaleString()}</span>
+          {/* Price Breakdown */}
+          <div className="border-t pt-4">
+            <div className="flex justify-between mb-2">
+              <span className="text-gray-600">Subtotal:</span>
+              <span>₦{parseFloat(booking.totalAmount).toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between mb-2">
+              <span className="text-gray-600">Service fee:</span>
+              <span>₦0</span>
+            </div>
+            <div className="flex justify-between font-semibold text-lg border-t pt-2">
+              <span>Total:</span>
+              <span className="text-purple-600">₦{parseFloat(booking.totalAmount).toLocaleString()}</span>
             </div>
           </div>
         </div>
 
-        {/* Payment Method - keeping your style */}
-        <div className="border border-black rounded-xl p-4 mb-6">
-          <h2 className="font-semibold text-lg mb-4">Payment Method</h2>
-          <div className="flex items-center space-x-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-            <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center">
-              <span className="text-white text-sm font-bold">💳</span>
-            </div>
+        {/* Payment Security Info */}
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+          <div className="flex items-center space-x-3">
+            <Shield className="w-5 h-5 text-green-600" />
             <div>
-              <p className="font-medium">Card Payment</p>
-              <p className="text-sm text-gray-500">Visa, Mastercard, Verve via Paystack</p>
+              <p className="text-sm font-medium text-green-900">Secure Payment</p>
+              <p className="text-sm text-green-700">
+                Your payment is secured by Paystack with 256-bit SSL encryption
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Security Note */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
-          <p className="text-sm text-blue-700">
-            🔒 Your payment is secured with 256-bit SSL encryption
-          </p>
+        {/* Payment Terms */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <h3 className="font-semibold text-blue-900 mb-2">Payment Terms</h3>
+          <ul className="text-sm text-blue-700 space-y-1">
+            <li>• Payment is processed immediately</li>
+            <li>• Full refund available up to 24 hours before session</li>
+            <li>• You'll receive a confirmation email after payment</li>
+            <li>• Contact support for any payment issues</li>
+          </ul>
         </div>
       </div>
 
-      {/* Bottom Payment Button - keeping your style */}
+      {/* Bottom Payment Button */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
         <div className="max-w-lg mx-auto">
           <button 
-            onClick={handlePayment}
+            onClick={handleMakePayment}
             disabled={processing}
-            className={`w-full py-4 rounded-lg font-semibold text-lg transition-colors ${
+            className={`w-full py-4 rounded-lg font-semibold text-lg transition-colors flex items-center justify-center space-x-2 ${
               processing
                 ? 'bg-gray-400 text-white cursor-not-allowed'
                 : 'bg-purple-500 text-white hover:bg-purple-600'
             }`}
           >
             {processing ? (
-              <div className="flex items-center justify-center space-x-2">
+              <>
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                 <span>Processing...</span>
-              </div>
+              </>
             ) : (
-              `Pay ₦${parseFloat(booking.totalAmount).toLocaleString()}`
+              <>
+                <CreditCard className="w-5 h-5" />
+                <span>Pay ₦{parseFloat(booking.totalAmount).toLocaleString()}</span>
+              </>
             )}
           </button>
+          
+          <div className="text-center mt-3">
+            <p className="text-xs text-gray-500">
+              By proceeding, you agree to our Terms of Service and Privacy Policy
+            </p>
+          </div>
         </div>
       </div>
     </div>

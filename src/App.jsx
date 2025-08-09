@@ -1,3 +1,4 @@
+// App.js for the users
 import { Routes, Route } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
@@ -26,8 +27,9 @@ import CreateEvent from './pages/CreateEvent';
 import ChooseCoach from './pages/ChooseCoach';
 import PaymentPage from './pages/PaymentPage';
 import BookingDetails from './pages/BookingDetails';
-import PaymentCallback from './pages/PaymentCallback';
 import BookingSuccess from './pages/BookingSuccess';
+import AllFacilities from './pages/AllFacilities';
+import AllCoaches from './pages/AllCoaches';
 
 
 function App() {
@@ -65,11 +67,18 @@ function App() {
             </DashboardLayout>
           } />
 
-             <Route path="/payment/callback" element={
+          <Route path="/facilities" element={
             <DashboardLayout>
-              <PaymentCallback />
+              <AllFacilities />
             </DashboardLayout>
           } />
+
+          <Route path="/coaches" element={
+            <DashboardLayout>
+              <AllCoaches />
+            </DashboardLayout>
+          } />
+
 
           <Route path="/bookings" element={
             <DashboardLayout>
@@ -83,7 +92,7 @@ function App() {
             </DashboardLayout>
           } />
 
-          
+
           <Route path="/booking-success/:bookingId" element={
             <DashboardLayout>
               <BookingSuccess />

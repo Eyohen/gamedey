@@ -1,4 +1,4 @@
-// BookingSuccess.jsx - Keeping your existing UI style
+// pages/BookingSuccess.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, X } from 'lucide-react';

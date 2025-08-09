@@ -8,6 +8,17 @@
   </head>
   <body>
     <div id="root"></div>
+      <script>
+        // Alternative: Load Paystack script dynamically
+        (function() {
+            if (typeof window.PaystackPop !== 'undefined') return;
+            
+            const script = document.createElement('script');
+            script.src = 'https://js.paystack.co/v1/inline.js';
+            script.async = true;
+            document.head.appendChild(script);
+        })();
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
