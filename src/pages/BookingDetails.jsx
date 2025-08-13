@@ -1,4 +1,4 @@
-//pages/BookingDetails.jsx
+//pages/BookingDetails.jsx - on the user frontend
 import React, { useState, useEffect } from 'react';
 import { 
   ChevronLeft, 

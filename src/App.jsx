@@ -30,6 +30,7 @@ import BookingDetails from './pages/BookingDetails';
 import BookingSuccess from './pages/BookingSuccess';
 import AllFacilities from './pages/AllFacilities';
 import AllCoaches from './pages/AllCoaches';
+import WriteReview from './pages/WriteReview';
 
 
 function App() {
@@ -89,6 +90,12 @@ function App() {
           <Route path="/booking-details/:bookingId" element={
             <DashboardLayout>
               <BookingDetails />
+            </DashboardLayout>
+          } />
+
+          <Route path="/review/:bookingId" element={
+            <DashboardLayout>
+              <WriteReview />
             </DashboardLayout>
           } />
 
