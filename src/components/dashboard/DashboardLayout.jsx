@@ -322,7 +322,9 @@ const DashboardLayout = ({ children }) => {
           {(!collapsed || mobileMenuOpen) && (
             <div className="text-xl font-bold">
               <img src={logo} className="w-36" alt="Logo" />
+            
             </div>
+            
           )}
           {/* Desktop collapse button */}
           <button 
