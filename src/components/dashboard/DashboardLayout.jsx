@@ -201,9 +201,11 @@ const DashboardLayout = ({ children }) => {
             <button className="p-2 text-gray-500 hover:text-black rounded-full">
               <Bell size={18} />
             </button>
+               <Link to={'/profile'}>
             <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
               <User size={14} />
             </div>
+            </Link>
           </div>
         </div>
 
