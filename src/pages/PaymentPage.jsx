@@ -120,7 +120,7 @@ const PaymentPage = () => {
       }
 
       const handler = window.PaystackPop.setup({
-        // key: 'pk_live_1633fba5489bdc4774c767223f0e1c18d2e277f8',
+      
         key: 'pk_live_ad43da25a04e811c0d7ebc42c312c07abaae2744',
         email: user.email,
         amount: Math.round(parseFloat(booking.totalAmount) * 100), // Convert to kobo
