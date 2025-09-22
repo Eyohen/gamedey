@@ -1,5 +1,5 @@
 // src/pages/Explore.jsx
-// MOBILE RESPONSIVE VERSION - Explore Page with Facilities and Coaches
+// Explore Page with Facilities and Coaches
 import React, { useState, useEffect } from 'react';
 import {
   Search,
