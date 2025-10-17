@@ -1,178 +1,484 @@
-// App.js for the users
-import { Routes, Route } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+// App.jsx - Unified Multi-Role Application
+import { Routes, Route, Navigate } from 'react-router-dom';
+import 'coinley-checkout/dist/style.css';
 
-import HomePage from './pages/HomePage';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import NotFoundPage from './pages/NotFoundPage';
+// Protected Route Component
+import ProtectedRoute from './components/ProtectedRoute';
 
-import 'coinley-checkout/dist/style.css'
+// Layouts
+import UserDashboardLayout from './components/dashboard/UserDashboardLayout';
+import CoachDashboardLayout from './components/dashboard/CoachDashboardLayout';
+import FacilityDashboardLayout from './components/dashboard/FacilityDashboardLayout';
 
+// Shared Pages (Auth & Public)
+import HomePage from './pages/shared/HomePage';
+import Login from './pages/shared/Login';
+import Register from './pages/shared/Register';
+import ForgotPassword from './pages/shared/ForgotPassword';
+import ResetPassword from './pages/shared/ResetPassword';
+import NotFoundPage from './pages/shared/NotFoundPage';
+import TermsAndConditions from './pages/shared/TermsAndConditions';
 
-import DashboardLayout from './components/dashboard/DashboardLayout';
-import Explore from './pages/Explore';
-import Bookings from './pages/Bookings';
-import Teams from './pages/Teams';
-import Community from './pages/Community';
-import TransactionHistory from './pages/TransactionHistory';
-import Reviews from './pages/Reviews';
+// User Pages
+import UserExplore from './pages/user/Explore';
+import UserBookings from './pages/user/Bookings';
+import UserTeams from './pages/user/Teams';
+import UserCommunity from './pages/user/Community';
+import UserTransactionHistory from './pages/user/TransactionHistory';
+import UserReviews from './pages/user/Reviews';
+import UserProfile from './pages/user/Profile';
+import CreateTeam from './pages/user/CreateTeam';
+import ChooseFacility from './pages/user/ChooseFacility';
+import CreateCommunity from './pages/user/CreateCommunity';
+import CommunityPost from './pages/user/CommunityPost';
+import CreateEvent from './pages/user/CreateEvent';
+import ChooseCoach from './pages/user/ChooseCoach';
+import PaymentPage from './pages/user/PaymentPage';
+import BookingDetails from './pages/user/BookingDetails';
+import BookingSuccess from './pages/user/BookingSuccess';
+import AllFacilities from './pages/user/AllFacilities';
+import AllCoaches from './pages/user/AllCoaches';
+import WriteReview from './pages/user/WriteReview';
+import SportDetail from './pages/user/SportDetail';
+import BookSession from './pages/user/BookSession';
 
-import Profile from './pages/Profile';
-import CreateTeam from './pages/CreateTeam';
-import ChooseFacility from './pages/ChooseFacility';
-import CreateCommunity from './pages/CreateCommunity';
-import CommunityPost from './pages/CommunityPost';
-import CreateEvent from './pages/CreateEvent';
-import ChooseCoach from './pages/ChooseCoach';
-import PaymentPage from './pages/PaymentPage';
-import BookingDetails from './pages/BookingDetails';
-import BookingSuccess from './pages/BookingSuccess';
-import AllFacilities from './pages/AllFacilities';
-import AllCoaches from './pages/AllCoaches';
-import WriteReview from './pages/WriteReview';
+// Coach Pages
+import CoachDashboard from './pages/coach/Dashboard';
+import CoachBookings from './pages/coach/Bookings';
+import CoachSessions from './pages/coach/Sessions';
+import CoachProfile from './pages/coach/Profile';
+import CoachTransactionHistory from './pages/coach/TransactionHistory';
+import CoachReviews from './pages/coach/Reviews';
+import CoachGetPaid from './pages/coach/GetPaid';
+import CoachEvents from './pages/coach/Events';
+import CoachTeams from './pages/coach/Teams';
+import CoachViewBooking from './pages/coach/ViewBooking';
+import CoachCommunity from './pages/coach/Community';
+import CoachDisputeResolution from './pages/coach/DisputeResolution';
+import CoachFinOverview from './pages/coach/FinOverview';
 
+// Facility Pages
+import FacilityDashboard from './pages/facility/Dashboard';
+import FacilityBookings from './pages/facility/Bookings';
+import FacilityProfile from './pages/facility/Profile';
+import FacilityManagement from './pages/facility/Facility';
+import FacilityViewBooking from './pages/facility/ViewBooking';
+import FacilityFinancialOverview from './pages/facility/FinancialOverview';
+import FacilityCommunity from './pages/facility/Community';
+import FacilityCreateFacility from './pages/facility/CreateFacility';
+import FacilityProducts from './pages/facility/ProductsPage';
+import FacilityCreateProduct from './pages/facility/CreateProduct';
+import FacilityProductDetail from './pages/facility/ProductDetailPage';
+import FacilityCart from './pages/facility/CartPage';
+import FacilityCheckout from './pages/facility/CheckoutPage';
+import FacilityOrderSuccess from './pages/facility/OrderSuccessPage';
 
 function App() {
   return (
     <div className="flex flex-col min-h-screen">
-
       <main className="flex-grow">
         <Routes>
-
+          {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="*" element={<NotFoundPage />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/terms" element={<TermsAndConditions />} />
 
-
-
-          {/* 
-            Protected routes with dashboard layout  */}
-
+          {/* ==================== USER ROUTES ==================== */}
           <Route path="/explore" element={
-            <DashboardLayout>
-              <Explore />
-            </DashboardLayout>
+            <ProtectedRoute allowedRoles={['user']}>
+              <UserDashboardLayout>
+                <UserExplore />
+              </UserDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/sport/:sportId" element={
+            <ProtectedRoute allowedRoles={['user']}>
+              <UserDashboardLayout>
+                <SportDetail />
+              </UserDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/book-session/:sportId" element={
+            <ProtectedRoute allowedRoles={['user']}>
+              <UserDashboardLayout>
+                <BookSession />
+              </UserDashboardLayout>
+            </ProtectedRoute>
           } />
 
           <Route path="/choose-facility/:facilityId" element={
-            <DashboardLayout>
-              <ChooseFacility />
-            </DashboardLayout>
+            <ProtectedRoute allowedRoles={['user']}>
+              <UserDashboardLayout>
+                <ChooseFacility />
+              </UserDashboardLayout>
+            </ProtectedRoute>
           } />
 
           <Route path="/choose-coach/:coachId" element={
-            <DashboardLayout>
-              <ChooseCoach />
-            </DashboardLayout>
+            <ProtectedRoute allowedRoles={['user']}>
+              <UserDashboardLayout>
+                <ChooseCoach />
+              </UserDashboardLayout>
+            </ProtectedRoute>
           } />
 
           <Route path="/facilities" element={
-            <DashboardLayout>
-              <AllFacilities />
-            </DashboardLayout>
+            <ProtectedRoute allowedRoles={['user']}>
+              <UserDashboardLayout>
+                <AllFacilities />
+              </UserDashboardLayout>
+            </ProtectedRoute>
           } />
 
           <Route path="/coaches" element={
-            <DashboardLayout>
-              <AllCoaches />
-            </DashboardLayout>
+            <ProtectedRoute allowedRoles={['user']}>
+              <UserDashboardLayout>
+                <AllCoaches />
+              </UserDashboardLayout>
+            </ProtectedRoute>
           } />
 
-
           <Route path="/bookings" element={
-            <DashboardLayout>
-              <Bookings />
-            </DashboardLayout>
+            <ProtectedRoute allowedRoles={['user']}>
+              <UserDashboardLayout>
+                <UserBookings />
+              </UserDashboardLayout>
+            </ProtectedRoute>
           } />
 
           <Route path="/booking-details/:bookingId" element={
-            <DashboardLayout>
-              <BookingDetails />
-            </DashboardLayout>
+            <ProtectedRoute allowedRoles={['user']}>
+              <UserDashboardLayout>
+                <BookingDetails />
+              </UserDashboardLayout>
+            </ProtectedRoute>
           } />
 
           <Route path="/review/:bookingId" element={
-            <DashboardLayout>
-              <WriteReview />
-            </DashboardLayout>
+            <ProtectedRoute allowedRoles={['user']}>
+              <UserDashboardLayout>
+                <WriteReview />
+              </UserDashboardLayout>
+            </ProtectedRoute>
           } />
 
-
           <Route path="/booking-success/:bookingId" element={
-            <DashboardLayout>
-              <BookingSuccess />
-            </DashboardLayout>
+            <ProtectedRoute allowedRoles={['user']}>
+              <UserDashboardLayout>
+                <BookingSuccess />
+              </UserDashboardLayout>
+            </ProtectedRoute>
           } />
 
           <Route path="/payment/:bookingId" element={
-            <DashboardLayout>
-              <PaymentPage />
-            </DashboardLayout>
+            <ProtectedRoute allowedRoles={['user']}>
+              <UserDashboardLayout>
+                <PaymentPage />
+              </UserDashboardLayout>
+            </ProtectedRoute>
           } />
 
           <Route path="/teams" element={
-            <DashboardLayout>
-              <Teams />
-            </DashboardLayout>
+            <ProtectedRoute allowedRoles={['user']}>
+              <UserDashboardLayout>
+                <UserTeams />
+              </UserDashboardLayout>
+            </ProtectedRoute>
           } />
 
           <Route path="/create-team" element={
-            <DashboardLayout>
-              <CreateTeam />
-            </DashboardLayout>
+            <ProtectedRoute allowedRoles={['user']}>
+              <UserDashboardLayout>
+                <CreateTeam />
+              </UserDashboardLayout>
+            </ProtectedRoute>
           } />
 
           <Route path="/community" element={
-            <DashboardLayout>
-              <Community />
-            </DashboardLayout>
+            <ProtectedRoute allowedRoles={['user']}>
+              <UserDashboardLayout>
+                <UserCommunity />
+              </UserDashboardLayout>
+            </ProtectedRoute>
           } />
 
           <Route path="/create-community" element={
-            <DashboardLayout>
-              <CreateCommunity />
-            </DashboardLayout>
+            <ProtectedRoute allowedRoles={['user']}>
+              <UserDashboardLayout>
+                <CreateCommunity />
+              </UserDashboardLayout>
+            </ProtectedRoute>
           } />
 
           <Route path="/community-post" element={
-            <DashboardLayout>
-              <CommunityPost />
-            </DashboardLayout>
+            <ProtectedRoute allowedRoles={['user']}>
+              <UserDashboardLayout>
+                <CommunityPost />
+              </UserDashboardLayout>
+            </ProtectedRoute>
           } />
 
           <Route path="/create-event" element={
-            <DashboardLayout>
-              <CreateEvent />
-            </DashboardLayout>
+            <ProtectedRoute allowedRoles={['user']}>
+              <UserDashboardLayout>
+                <CreateEvent />
+              </UserDashboardLayout>
+            </ProtectedRoute>
           } />
 
           <Route path="/transaction-history" element={
-            <DashboardLayout>
-              <TransactionHistory />
-            </DashboardLayout>
+            <ProtectedRoute allowedRoles={['user']}>
+              <UserDashboardLayout>
+                <UserTransactionHistory />
+              </UserDashboardLayout>
+            </ProtectedRoute>
           } />
 
           <Route path="/reviews" element={
-            <DashboardLayout>
-              <Reviews />
-            </DashboardLayout>
+            <ProtectedRoute allowedRoles={['user']}>
+              <UserDashboardLayout>
+                <UserReviews />
+              </UserDashboardLayout>
+            </ProtectedRoute>
           } />
 
           <Route path="/profile" element={
-            <DashboardLayout>
-              <Profile />
-            </DashboardLayout>
+            <ProtectedRoute allowedRoles={['user']}>
+              <UserDashboardLayout>
+                <UserProfile />
+              </UserDashboardLayout>
+            </ProtectedRoute>
           } />
 
+          {/* ==================== COACH ROUTES ==================== */}
+          <Route path="/coach/dashboard" element={
+            <ProtectedRoute allowedRoles={['coach']}>
+              <CoachDashboardLayout>
+                <CoachDashboard />
+              </CoachDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/coach/bookings" element={
+            <ProtectedRoute allowedRoles={['coach']}>
+              <CoachDashboardLayout>
+                <CoachBookings />
+              </CoachDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/coach/sessions" element={
+            <ProtectedRoute allowedRoles={['coach']}>
+              <CoachDashboardLayout>
+                <CoachSessions />
+              </CoachDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/coach/booking/:bookingId" element={
+            <ProtectedRoute allowedRoles={['coach']}>
+              <CoachDashboardLayout>
+                <CoachViewBooking />
+              </CoachDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/coach/profile" element={
+            <ProtectedRoute allowedRoles={['coach']}>
+              <CoachDashboardLayout>
+                <CoachProfile />
+              </CoachDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/coach/transaction-history" element={
+            <ProtectedRoute allowedRoles={['coach']}>
+              <CoachDashboardLayout>
+                <CoachTransactionHistory />
+              </CoachDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/coach/financial-overview" element={
+            <ProtectedRoute allowedRoles={['coach']}>
+              <CoachDashboardLayout>
+                <CoachFinOverview />
+              </CoachDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/coach/reviews" element={
+            <ProtectedRoute allowedRoles={['coach']}>
+              <CoachDashboardLayout>
+                <CoachReviews />
+              </CoachDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/coach/get-paid" element={
+            <ProtectedRoute allowedRoles={['coach']}>
+              <CoachDashboardLayout>
+                <CoachGetPaid />
+              </CoachDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/coach/events" element={
+            <ProtectedRoute allowedRoles={['coach']}>
+              <CoachDashboardLayout>
+                <CoachEvents />
+              </CoachDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/coach/teams" element={
+            <ProtectedRoute allowedRoles={['coach']}>
+              <CoachDashboardLayout>
+                <CoachTeams />
+              </CoachDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/coach/community" element={
+            <ProtectedRoute allowedRoles={['coach']}>
+              <CoachDashboardLayout>
+                <CoachCommunity />
+              </CoachDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/coach/disputes" element={
+            <ProtectedRoute allowedRoles={['coach']}>
+              <CoachDashboardLayout>
+                <CoachDisputeResolution />
+              </CoachDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          {/* ==================== FACILITY ROUTES ==================== */}
+          <Route path="/facility/dashboard" element={
+            <ProtectedRoute allowedRoles={['facility']}>
+              <FacilityDashboardLayout>
+                <FacilityDashboard />
+              </FacilityDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/facility/bookings" element={
+            <ProtectedRoute allowedRoles={['facility']}>
+              <FacilityDashboardLayout>
+                <FacilityBookings />
+              </FacilityDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/facility/booking/:bookingId" element={
+            <ProtectedRoute allowedRoles={['facility']}>
+              <FacilityDashboardLayout>
+                <FacilityViewBooking />
+              </FacilityDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/facility/manage" element={
+            <ProtectedRoute allowedRoles={['facility']}>
+              <FacilityDashboardLayout>
+                <FacilityManagement />
+              </FacilityDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/facility/create" element={
+            <ProtectedRoute allowedRoles={['facility']}>
+              <FacilityDashboardLayout>
+                <FacilityCreateFacility />
+              </FacilityDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/facility/profile" element={
+            <ProtectedRoute allowedRoles={['facility']}>
+              <FacilityDashboardLayout>
+                <FacilityProfile />
+              </FacilityDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/facility/financial-overview" element={
+            <ProtectedRoute allowedRoles={['facility']}>
+              <FacilityDashboardLayout>
+                <FacilityFinancialOverview />
+              </FacilityDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/facility/community" element={
+            <ProtectedRoute allowedRoles={['facility']}>
+              <FacilityDashboardLayout>
+                <FacilityCommunity />
+              </FacilityDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/facility/products" element={
+            <ProtectedRoute allowedRoles={['facility']}>
+              <FacilityDashboardLayout>
+                <FacilityProducts />
+              </FacilityDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/facility/create-product" element={
+            <ProtectedRoute allowedRoles={['facility']}>
+              <FacilityDashboardLayout>
+                <FacilityCreateProduct />
+              </FacilityDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/facility/product/:productId" element={
+            <ProtectedRoute allowedRoles={['facility']}>
+              <FacilityDashboardLayout>
+                <FacilityProductDetail />
+              </FacilityDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/facility/cart" element={
+            <ProtectedRoute allowedRoles={['facility']}>
+              <FacilityDashboardLayout>
+                <FacilityCart />
+              </FacilityDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/facility/checkout" element={
+            <ProtectedRoute allowedRoles={['facility']}>
+              <FacilityDashboardLayout>
+                <FacilityCheckout />
+              </FacilityDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/facility/order-success" element={
+            <ProtectedRoute allowedRoles={['facility']}>
+              <FacilityDashboardLayout>
+                <FacilityOrderSuccess />
+              </FacilityDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          {/* 404 Not Found */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
-
     </div>
-
   );
 }
 
 export default App;
-

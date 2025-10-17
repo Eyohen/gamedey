@@ -116,6 +116,10 @@ class BookingService {
       errors.push('Coach ID is required');
     }
 
+    if (data.bookingType === 'both' && (!data.facilityId || !data.coachId)) {
+      errors.push('Both facility and coach are required for combined booking');
+    }
+
     if (!data.startTime || !data.endTime) {
       errors.push('Start time and end time are required');
     }
