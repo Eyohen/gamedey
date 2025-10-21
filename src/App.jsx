@@ -66,11 +66,6 @@ import FacilityViewBooking from './pages/facility/ViewBooking';
 import FacilityFinancialOverview from './pages/facility/FinancialOverview';
 import FacilityCommunity from './pages/facility/Community';
 import FacilityCreateFacility from './pages/facility/CreateFacility';
-import FacilityProducts from './pages/facility/ProductsPage';
-import FacilityCreateProduct from './pages/facility/CreateProduct';
-import FacilityProductDetail from './pages/facility/ProductDetailPage';
-import FacilityCart from './pages/facility/CartPage';
-import FacilityCheckout from './pages/facility/CheckoutPage';
 import FacilityOrderSuccess from './pages/facility/OrderSuccessPage';
 
 function App() {
@@ -421,46 +416,6 @@ function App() {
             <ProtectedRoute allowedRoles={['facility']}>
               <FacilityDashboardLayout>
                 <FacilityCommunity />
-              </FacilityDashboardLayout>
-            </ProtectedRoute>
-          } />
-
-          <Route path="/facility/products" element={
-            <ProtectedRoute allowedRoles={['facility']}>
-              <FacilityDashboardLayout>
-                <FacilityProducts />
-              </FacilityDashboardLayout>
-            </ProtectedRoute>
-          } />
-
-          <Route path="/facility/create-product" element={
-            <ProtectedRoute allowedRoles={['facility']}>
-              <FacilityDashboardLayout>
-                <FacilityCreateProduct />
-              </FacilityDashboardLayout>
-            </ProtectedRoute>
-          } />
-
-          <Route path="/facility/product/:productId" element={
-            <ProtectedRoute allowedRoles={['facility']}>
-              <FacilityDashboardLayout>
-                <FacilityProductDetail />
-              </FacilityDashboardLayout>
-            </ProtectedRoute>
-          } />
-
-          <Route path="/facility/cart" element={
-            <ProtectedRoute allowedRoles={['facility']}>
-              <FacilityDashboardLayout>
-                <FacilityCart />
-              </FacilityDashboardLayout>
-            </ProtectedRoute>
-          } />
-
-          <Route path="/facility/checkout" element={
-            <ProtectedRoute allowedRoles={['facility']}>
-              <FacilityDashboardLayout>
-                <FacilityCheckout />
               </FacilityDashboardLayout>
             </ProtectedRoute>
           } />
