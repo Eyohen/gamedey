@@ -19,6 +19,7 @@ const ChatBox = ({ conversation, onClose }) => {
     typingUsers
   } = useChat();
 
+  
   const [loading, setLoading] = useState(true);
   const [messageInput, setMessageInput] = useState('');
   const [sending, setSending] = useState(false);
