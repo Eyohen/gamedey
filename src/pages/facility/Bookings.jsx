@@ -583,12 +583,15 @@ import {
   Filter,
   Search,
   ChevronDown,
-  Phone
+  Phone,
+  MessageCircle
 } from 'lucide-react';
 import axios from 'axios';
 import { URL } from '../../url';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import ChatBox from '../../components/ChatBox';
+import { getConversationByBookingId } from '../../services/chatService';
 
 const Bookings = () => {
   const { user } = useAuth();
@@ -607,6 +610,9 @@ const Bookings = () => {
     total: 0,
     pages: 0
   });
+  const [showChat, setShowChat] = useState(false);
+  const [activeConversation, setActiveConversation] = useState(null);
+  const [loadingChat, setLoadingChat] = useState(false);
 
   // Filter options
   const statusOptions = [
@@ -704,6 +710,31 @@ const Bookings = () => {
       if (window.confirm(confirmMessage)) {
         updateBookingStatus(booking.id, newStatus);
       }
+    }
+  };
+
+  // Handle opening chat
+  const handleOpenChat = async (booking, chatWith = 'facility') => {
+    // Only allow chat for confirmed bookings
+    if (booking.status !== 'confirmed') {
+      alert('Chat is only available for confirmed bookings');
+      return;
+    }
+
+    try {
+      setLoadingChat(true);
+      const response = await getConversationByBookingId(booking.id, chatWith);
+      setActiveConversation(response.data.conversation);
+      setShowChat(true);
+    } catch (error) {
+      console.error('Error loading conversation:', error);
+      if (error.response?.status === 404) {
+        alert('Chat room not found. The booking may not be confirmed yet.');
+      } else {
+        alert('Failed to load chat. Please try again.');
+      }
+    } finally {
+      setLoadingChat(false);
     }
   };
 
@@ -1109,13 +1140,26 @@ const Bookings = () => {
 
                 {/* Actions */}
                 <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                  <button
-                    onClick={() => navigate(`/booking-details/${booking.id}`)}
-                    className="flex items-center gap-1 text-purple-600 hover:text-purple-700 text-sm"
-                  >
-                    <Eye size={14} />
-                    View Details
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => navigate(`/booking-details/${booking.id}`)}
+                      className="flex items-center gap-1 text-purple-600 hover:text-purple-700 text-sm"
+                    >
+                      <Eye size={14} />
+                      View Details
+                    </button>
+
+                    {booking.status === 'confirmed' && (
+                      <button
+                        onClick={() => handleOpenChat(booking, 'facility')}
+                        disabled={loadingChat}
+                        className="flex items-center gap-1 text-white bg-purple-600 hover:bg-purple-700 px-2 py-1 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <MessageCircle size={14} />
+                        Chat with User
+                      </button>
+                    )}
+                  </div>
 
                   <div className="flex items-center space-x-2">
                     {booking.status === 'pending' && (
@@ -1291,6 +1335,18 @@ const Bookings = () => {
                             <Eye size={16} />
                           </button>
 
+                          {/* Chat Button for Confirmed Bookings */}
+                          {booking.status === 'confirmed' && (
+                            <button
+                              onClick={() => handleOpenChat(booking, 'facility')}
+                              disabled={loadingChat}
+                              className="text-purple-600 hover:text-purple-900 flex items-center p-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Chat with User"
+                            >
+                              <MessageCircle size={16} />
+                            </button>
+                          )}
+
                           {/* Status Actions */}
                           {booking.status === 'pending' && (
                             <>
@@ -1399,6 +1455,17 @@ const Bookings = () => {
           </div>
         )}
       </div>
+
+      {/* Chat Modal */}
+      {showChat && activeConversation && (
+        <ChatBox
+          conversation={activeConversation}
+          onClose={() => {
+            setShowChat(false);
+            setActiveConversation(null);
+          }}
+        />
+      )}
     </div>
   );
 };

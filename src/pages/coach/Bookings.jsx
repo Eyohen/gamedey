@@ -13,12 +13,15 @@ import {
   RefreshCw,
   Filter,
   Search,
-  ChevronDown
+  ChevronDown,
+  MessageCircle
 } from 'lucide-react';
 import axios from 'axios';
 import { URL } from '../../url';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import ChatBox from '../../components/ChatBox';
+import { getConversationByBookingId } from '../../services/chatService';
 
 const Bookings = () => {
   const { user } = useAuth();
@@ -37,6 +40,9 @@ const Bookings = () => {
     total: 0,
     pages: 0
   });
+  const [showChat, setShowChat] = useState(false);
+  const [activeConversation, setActiveConversation] = useState(null);
+  const [loadingChat, setLoadingChat] = useState(false);
 
   // Filter options
   const statusOptions = [
@@ -131,6 +137,31 @@ const Bookings = () => {
       if (window.confirm(confirmMessage)) {
         updateBookingStatus(booking.id, newStatus);
       }
+    }
+  };
+
+  // Handle opening chat
+  const handleOpenChat = async (booking, chatWith = 'coach') => {
+    // Only allow chat for confirmed bookings
+    if (booking.status !== 'confirmed') {
+      alert('Chat is only available for confirmed bookings');
+      return;
+    }
+
+    try {
+      setLoadingChat(true);
+      const response = await getConversationByBookingId(booking.id, chatWith);
+      setActiveConversation(response.data.conversation);
+      setShowChat(true);
+    } catch (error) {
+      console.error('Error loading conversation:', error);
+      if (error.response?.status === 404) {
+        alert('Chat room not found. The booking may not be confirmed yet.');
+      } else {
+        alert('Failed to load chat. Please try again.');
+      }
+    } finally {
+      setLoadingChat(false);
     }
   };
 
@@ -530,12 +561,23 @@ const getUpcomingCount = () => bookings.filter(booking => isBookingUpcoming(book
                 <div className="mt-4 flex gap-2">
                   <button
                   onClick={() => navigate(`/bookings/${booking.id}`)}
-                
+
                     className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-purple-600 border border-purple-200 rounded-lg hover:bg-purple-50 transition-colors text-sm"
                   >
                     <Eye size={14} />
                     View
                   </button>
+
+                  {booking.status === 'confirmed' && (
+                    <button
+                      onClick={() => handleOpenChat(booking, 'coach')}
+                      disabled={loadingChat}
+                      className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <MessageCircle size={14} />
+                      {loadingChat ? 'Loading...' : 'Chat with User'}
+                    </button>
+                  )}
 
                   {booking.status === 'pending' && (
                     <>
@@ -713,6 +755,18 @@ const getUpcomingCount = () => bookings.filter(booking => isBookingUpcoming(book
                             <Eye size={16} />
                           </button>
 
+                          {/* Chat Button for Confirmed Bookings */}
+                          {booking.status === 'confirmed' && (
+                            <button
+                              onClick={() => handleOpenChat(booking, 'coach')}
+                              disabled={loadingChat}
+                              className="text-purple-600 hover:text-purple-900 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Chat with User"
+                            >
+                              <MessageCircle size={16} />
+                            </button>
+                          )}
+
                           {/* Status Actions */}
                           {booking.status === 'pending' && (
                             <>
@@ -822,6 +876,17 @@ const getUpcomingCount = () => bookings.filter(booking => isBookingUpcoming(book
             </button>
           </div>
         </div>
+      )}
+
+      {/* Chat Modal */}
+      {showChat && activeConversation && (
+        <ChatBox
+          conversation={activeConversation}
+          onClose={() => {
+            setShowChat(false);
+            setActiveConversation(null);
+          }}
+        />
       )}
     </div>
   );

@@ -1,4 +1,4 @@
-// //pages/Bookings.jsx 
+// //pages/Bookings.jsx
 // MOBILE RESPONSIVE VERSION - User Bookings Management Page
 import { useState, useEffect } from 'react';
 import {
@@ -7,12 +7,15 @@ import {
   Clock,
   MapPin,
   User,
-  Eye
+  Eye,
+  MessageCircle
 } from 'lucide-react';
 import axios from 'axios';
 import { URL } from '../../url';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import ChatBox from '../../components/ChatBox';
+import { getConversationByBookingId } from '../../services/chatService';
 
 const Bookings = () => {
   const { user } = useAuth();
@@ -26,6 +29,9 @@ const Bookings = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showChat, setShowChat] = useState(false);
+  const [activeConversation, setActiveConversation] = useState(null);
+  const [loadingChat, setLoadingChat] = useState(false);
 
   // Fetch user bookings
   const fetchBookings = async () => {
@@ -114,6 +120,30 @@ const Bookings = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const handleOpenChat = async (booking, chatWith) => {
+    // Only allow chat for confirmed bookings
+    if (booking.status !== 'confirmed') {
+      alert('Chat is only available for confirmed bookings');
+      return;
+    }
+
+    try {
+      setLoadingChat(true);
+      const response = await getConversationByBookingId(booking.id, chatWith);
+      setActiveConversation(response.data.conversation);
+      setShowChat(true);
+    } catch (error) {
+      console.error('Error loading conversation:', error);
+      if (error.response?.status === 404) {
+        alert('Chat room not found. The booking may not be confirmed yet.');
+      } else {
+        alert('Failed to load chat. Please try again.');
+      }
+    } finally {
+      setLoadingChat(false);
+    }
   };
 
   if (loading) {
@@ -294,16 +324,44 @@ const Bookings = () => {
                     </div>
                   </div>
 
-                  {/* Amount and Action - Mobile Responsive */}
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                    <span className="font-semibold text-[#7042D2] text-lg">₦{booking.totalAmount}</span>
-                    <button 
-                      className="w-full sm:w-auto text-blue-600 hover:text-blue-900 text-sm font-medium hover:underline flex items-center justify-center sm:justify-start"
-                      onClick={() => navigate(`/booking-details/${booking.id}`)}
-                    >
-                      <Eye size={14} className="mr-1" />
-                      View Details
-                    </button>
+                  {/* Amount and Actions - Mobile Responsive */}
+                  <div className="flex flex-col gap-2 mt-3">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-[#7042D2] text-lg">₦{booking.totalAmount}</span>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <button
+                        className="text-blue-600 hover:text-blue-900 text-sm font-medium hover:underline flex items-center justify-center border border-blue-600 rounded-lg py-2 hover:bg-blue-50 transition"
+                        onClick={() => navigate(`/booking-details/${booking.id}`)}
+                      >
+                        <Eye size={14} className="mr-1" />
+                        View Details
+                      </button>
+                      {booking.status === 'confirmed' && (
+                        <div className="flex gap-2">
+                          {booking.Coach && (
+                            <button
+                              className="flex-1 bg-purple-600 text-white hover:bg-purple-700 text-sm font-medium flex items-center justify-center rounded-lg py-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                              onClick={() => handleOpenChat(booking, 'coach')}
+                              disabled={loadingChat}
+                            >
+                              <MessageCircle size={14} className="mr-1" />
+                              {loadingChat ? 'Loading...' : 'Coach'}
+                            </button>
+                          )}
+                          {booking.Facility && (
+                            <button
+                              className="flex-1 bg-purple-600 text-white hover:bg-purple-700 text-sm font-medium flex items-center justify-center rounded-lg py-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                              onClick={() => handleOpenChat(booking, 'facility')}
+                              disabled={loadingChat}
+                            >
+                              <MessageCircle size={14} className="mr-1" />
+                              {loadingChat ? 'Loading...' : 'Facility'}
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -321,6 +379,17 @@ const Bookings = () => {
           )}
         </div>
       </div>
+
+      {/* Chat Modal */}
+      {showChat && activeConversation && (
+        <ChatBox
+          conversation={activeConversation}
+          onClose={() => {
+            setShowChat(false);
+            setActiveConversation(null);
+          }}
+        />
+      )}
     </div>
   );
 };
