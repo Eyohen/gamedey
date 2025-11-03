@@ -740,60 +740,34 @@ const Register = () => {
 
       // Check for successful response
       if (response.status >= 200 && response.status < 300) {
-        // Handle different response structures
-        let user, token, refreshToken;
-        
-        if (response.data && response.data.success) {
-          // Standard format: { success: true, data: { user, token, refreshToken } }
-          const { data } = response.data;
-          user = data.user;
-          token = data.token;
-          refreshToken = data.refreshToken;
-        } else if (response.data && response.data.user) {
-          // Alternative format: { user, token, refreshToken }
-          user = response.data.user;
-          token = response.data.token;
-          refreshToken = response.data.refreshToken;
-        } else {
-          // Fallback: assume the entire response.data is the user
-          user = response.data;
-          console.warn('Unexpected response format, using entire response as user data');
-        }
+        console.log('Registration successful!');
 
-        console.log('Extracted user:', user);
-        console.log('Extracted token:', token);
+        // Show success message and redirect to login
+        // Don't store tokens or login - user must verify email first
+        setError(''); // Clear any errors
 
-        if (user) {
-          // Store tokens if available
-          if (token) {
-            localStorage.setItem("access_token", token);
+        // Navigate to a success/verification page with the registered email
+        navigate('/login', {
+          state: {
+            message: 'Registration successful! Please check your email to verify your account before logging in.',
+            email: formData.email
           }
-          if (refreshToken) {
-            localStorage.setItem("refresh_token", refreshToken);
-          }
-          
-          // Update auth context
-          login(user);
-          
-          console.log('Registration successful, navigating to explore');
-          navigate("/explore");
-        } else {
-          setError('Registration completed but user data is missing. Please try logging in.');
-        }
+        });
       }
     } catch (err) {
       console.error('Registration error:', err);
       console.error('Error response:', err.response);
       console.error('Error response data:', err.response?.data);
-      
-      if (err.response?.status === 409) {
-        setError('User already exists with this email');
-      } else if (err.response?.status === 500) {
-        setError('Server error occurred. Please check if the user was created and try logging in.');
-      } else if (err.response?.data?.message) {
+
+      // Use the actual error message from backend
+      if (err.response?.data?.message) {
         setError(err.response.data.message);
       } else if (err.response?.data?.errors && err.response.data.errors.length > 0) {
         setError(err.response.data.errors[0].msg);
+      } else if (err.response?.status === 409) {
+        setError('A user with this email or phone number already exists');
+      } else if (err.response?.status === 500) {
+        setError('Server error occurred. Please check if the user was created and try logging in.');
       } else {
         setError('Registration failed. Please try again.');
       }

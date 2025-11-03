@@ -16,6 +16,7 @@ import Login from './pages/shared/Login';
 import Register from './pages/shared/Register';
 import ForgotPassword from './pages/shared/ForgotPassword';
 import ResetPassword from './pages/shared/ResetPassword';
+import VerifyEmail from './pages/shared/VerifyEmail';
 import NotFoundPage from './pages/shared/NotFoundPage';
 import TermsAndConditions from './pages/shared/TermsAndConditions';
 
@@ -79,6 +80,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/terms" element={<TermsAndConditions />} />
 
           {/* ==================== USER ROUTES ==================== */}

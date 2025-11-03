@@ -1,12 +1,13 @@
 // pages/Login.jsx
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   RiMailLine,
   RiLockLine,
   RiEyeLine,
   RiEyeOffLine,
-  RiErrorWarningLine
+  RiErrorWarningLine,
+  RiCheckboxCircleFill
 } from 'react-icons/ri';
 import axios from 'axios';
 import { URL } from '../../url';
@@ -17,6 +18,7 @@ import { LuUserRoundPlus } from "react-icons/lu";
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
@@ -26,6 +28,19 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+
+  // Check for success message from registration
+  useEffect(() => {
+    if (location.state?.message) {
+      setSuccessMessage(location.state.message);
+      if (location.state.email) {
+        setFormData(prev => ({ ...prev, email: location.state.email }));
+      }
+      // Clear the state to prevent message from showing on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
   const [selectedRole, setSelectedRole] = useState('user');
 
   const roles = [
@@ -176,6 +191,15 @@ const Login = () => {
 
           <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md">
             <form className="space-y-6" onSubmit={handleSubmit}>
+              {successMessage && (
+                <div className="bg-green-50 border border-green-200 rounded-md p-3">
+                  <div className="flex items-center">
+                    <RiCheckboxCircleFill className="h-5 w-5 text-green-500 mr-2" />
+                    <span className="text-sm text-green-700">{successMessage}</span>
+                  </div>
+                </div>
+              )}
+
               {error && (
                 <div className="bg-red-50 border border-red-200 rounded-md p-3">
                   <div className="flex items-center">
