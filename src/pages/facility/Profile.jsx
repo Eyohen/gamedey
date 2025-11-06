@@ -741,7 +741,11 @@ import {
   Globe,
   Instagram,
   Facebook,
-  Twitter
+  Twitter,
+  Upload,
+  Image as ImageIcon,
+  Trash2,
+  Loader
 } from 'lucide-react';
 import axios from 'axios';
 import { URL } from '../../url';
@@ -763,6 +767,12 @@ const Profile = () => {
     totalReviews: 0,
     activeFacilities: 0
   });
+
+  // Sports and images state
+  const [availableSports, setAvailableSports] = useState([]);
+  const [selectedSports, setSelectedSports] = useState([]);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [facilityImages, setFacilityImages] = useState([]);
   
   const [editForm, setEditForm] = useState({
     firstName: '',
@@ -849,12 +859,12 @@ const Profile = () => {
       }
 
       // Fetch facility data
-      const facilityResponse = await axios.get(`${URL}/facilities/my-facilities`, {
+      const facilityResponse = await axios.get(`${URL}/facilities/profile/me`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
-      if (facilityResponse.data.success && facilityResponse.data.data.length > 0) {
-        const facility = facilityResponse.data.data[0]; // Get first facility
+      if (facilityResponse.data.success && facilityResponse.data.data) {
+        const facility = facilityResponse.data.data;
         setFacilityData(facility);
         
         // Initialize facility edit form
@@ -900,12 +910,12 @@ const Profile = () => {
       if (!token) return;
 
       // Fetch facility bookings
-      const bookingsResponse = await axios.get(`${URL}/facilities/bookings`, {
+      const bookingsResponse = await axios.get(`${URL}/facilities/profile/bookings`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
       // Fetch facility reviews
-      const reviewsResponse = await axios.get(`${URL}/facilities/reviews`, {
+      const reviewsResponse = await axios.get(`${URL}/reviews?facilityId=${facilityData?.id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -1100,10 +1110,135 @@ const Profile = () => {
     }
   };
 
+  // Fetch available sports
+  const fetchSports = async () => {
+    try {
+      const response = await axios.get(`${URL}/sports`);
+      if (response.data.success) {
+        setAvailableSports(response.data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching sports:', err);
+    }
+  };
+
+  // Update facility sports
+  const updateFacilitySports = async () => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await axios.put(
+        `${URL}/facilities/profile/sports`,
+        { sportIds: selectedSports },
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+
+      if (response.data.success) {
+        setSuccess('Sports updated successfully!');
+        setTimeout(() => setSuccess(''), 3000);
+        fetchProfile(); // Refresh facility data
+      }
+    } catch (err) {
+      console.error('Error updating sports:', err);
+      setError(err.response?.data?.message || 'Failed to update sports');
+    }
+  };
+
+  // Handle image upload
+  const handleImageUpload = async (e) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingImage(true);
+    setError('');
+
+    try {
+      const token = localStorage.getItem('access_token');
+      const formData = new FormData();
+
+      // Upload multiple images
+      Array.from(files).forEach(file => {
+        formData.append('images', file);
+      });
+
+      // First upload to cloudinary
+      const uploadResponse = await axios.post(`${URL}/upload/images`, formData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      if (uploadResponse.data.success) {
+        const imageUrls = uploadResponse.data.data.urls;
+
+        // Then save to facility profile
+        const saveResponse = await axios.post(
+          `${URL}/facilities/profile/images`,
+          { images: imageUrls },
+          { headers: { 'Authorization': `Bearer ${token}` } }
+        );
+
+        if (saveResponse.data.success) {
+          setFacilityImages(saveResponse.data.data.images);
+          setSuccess('Images uploaded successfully!');
+          setTimeout(() => setSuccess(''), 3000);
+        }
+      }
+    } catch (err) {
+      console.error('Error uploading images:', err);
+      setError(err.response?.data?.message || 'Failed to upload images');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  // Delete facility image
+  const deleteImage = async (imageUrl) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await axios.delete(
+        `${URL}/facilities/profile/images`,
+        {
+          headers: { 'Authorization': `Bearer ${token}` },
+          data: { imageUrl }
+        }
+      );
+
+      if (response.data.success) {
+        setFacilityImages(response.data.data.images);
+        setSuccess('Image deleted successfully!');
+        setTimeout(() => setSuccess(''), 3000);
+      }
+    } catch (err) {
+      console.error('Error deleting image:', err);
+      setError(err.response?.data?.message || 'Failed to delete image');
+    }
+  };
+
+  // Handle sport selection
+  const handleSportToggle = (sportId) => {
+    setSelectedSports(prev => {
+      if (prev.includes(sportId)) {
+        return prev.filter(id => id !== sportId);
+      } else {
+        return [...prev, sportId];
+      }
+    });
+  };
+
   useEffect(() => {
     fetchProfile();
     fetchFacilityStats();
+    fetchSports();
   }, []);
+
+  // Update selected sports and images when facility data loads
+  useEffect(() => {
+    if (facilityData) {
+      setSelectedSports(facilityData.Sports?.map(s => s.id) || []);
+      setFacilityImages(facilityData.images || []);
+    }
+  }, [facilityData]);
 
   if (loading) {
     return (
@@ -1209,6 +1344,7 @@ const Profile = () => {
                   onClick={() => {
                     updateProfile();
                     if (facilityData) updateFacility();
+                    updateFacilitySports();
                   }}
                   className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors flex items-center"
                 >
@@ -1487,6 +1623,119 @@ const Profile = () => {
               </div>
             </div>
           </div>
+
+          {/* Sports Offered */}
+          {facilityData && (
+            <div className="bg-white rounded-lg shadow-md border border-black border-r-[6px] border-b-[4px] p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Sports Offered</h2>
+
+              {editing ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-600 mb-3">Select all sports your facility offers:</p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {availableSports.map(sport => (
+                      <label
+                        key={sport.id}
+                        className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                          selectedSports.includes(sport.id)
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:border-blue-300'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedSports.includes(sport.id)}
+                          onChange={() => handleSportToggle(sport.id)}
+                          className="mr-2"
+                        />
+                        <span className="text-xl mr-2">{sport.icon}</span>
+                        <span className="text-sm font-medium">{sport.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  {facilityData.Sports && facilityData.Sports.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {facilityData.Sports.map(sport => (
+                        <span
+                          key={sport.id}
+                          className="inline-flex items-center px-3 py-2 bg-blue-100 text-blue-800 rounded-lg text-sm font-medium"
+                        >
+                          <span className="text-xl mr-2">{sport.icon}</span>
+                          {sport.name}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">No sports selected yet</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Facility Images */}
+          {facilityData && (
+            <div className="bg-white rounded-lg shadow-md border border-black border-r-[6px] border-b-[4px] p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Facility Photos</h2>
+
+              <div className="space-y-4">
+                {/* Upload Button */}
+                <div>
+                  <label className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      disabled={uploadingImage}
+                    />
+                    {uploadingImage ? (
+                      <div className="flex items-center text-blue-600">
+                        <Loader size={20} className="mr-2 animate-spin" />
+                        <span>Uploading...</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center text-gray-600">
+                        <Upload size={20} className="mr-2" />
+                        <span>Upload Photos (Multiple)</span>
+                      </div>
+                    )}
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1">Upload multiple images (max 5MB each)</p>
+                </div>
+
+                {/* Image Gallery */}
+                {facilityImages.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {facilityImages.map((imageUrl, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={imageUrl}
+                          alt={`Facility ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-lg"
+                        />
+                        <button
+                          onClick={() => deleteImage(imageUrl)}
+                          className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
+                    <ImageIcon size={48} className="mx-auto text-gray-300 mb-2" />
+                    <p className="text-gray-500 text-sm">No images uploaded yet</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Sidebar */}

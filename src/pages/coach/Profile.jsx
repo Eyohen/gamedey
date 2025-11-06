@@ -17,7 +17,11 @@ import {
   AlertCircle,
   Check,
   RefreshCw,
-  Camera
+  Camera,
+  Upload,
+  Image as ImageIcon,
+  Trash2,
+  Loader
 } from 'lucide-react';
 
 const Profile = () => {
@@ -53,6 +57,12 @@ const Profile = () => {
 
   // Profile image state
   const [profileImage, setProfileImage] = useState(null);
+
+  // Sports and gallery images state
+  const [availableSports, setAvailableSports] = useState([]);
+  const [selectedSports, setSelectedSports] = useState([]);
+  const [galleryImages, setGalleryImages] = useState([]);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
 
   // Availability state
   const [availability, setAvailability] = useState({
@@ -113,21 +123,33 @@ const Profile = () => {
       setUploadingImage(true);
       setError('');
 
-      // Upload to Cloudinary
-      const imageUrl = await uploadToCloudinary(file);
-
-      // Update backend
       const token = localStorage.getItem('access_token');
-      const response = await axios.put(`${URL}/coaches/profile/me`, {
-        profileImage: imageUrl
-      }, {
-        headers: { 'Authorization': `Bearer ${token}` }
+      const formData = new FormData();
+      formData.append('image', file);
+
+      // Upload using our backend API
+      const uploadResponse = await axios.post(`${URL}/upload/image`, formData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
       });
 
-      if (response.data.success) {
-        setProfileImage(imageUrl);
-        setSuccessMessage('Profile photo updated successfully!');
-        setTimeout(() => setSuccessMessage(''), 3000);
+      if (uploadResponse.data.success) {
+        const imageUrl = uploadResponse.data.data.url;
+
+        // Update coach profile
+        const response = await axios.post(`${URL}/coaches/profile/profile-image`, {
+          imageUrl
+        }, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.data.success) {
+          setProfileImage(imageUrl);
+          setSuccessMessage('Profile photo updated successfully!');
+          setTimeout(() => setSuccessMessage(''), 3000);
+        }
       }
     } catch (err) {
       console.error('Error uploading profile image:', err);
@@ -135,6 +157,122 @@ const Profile = () => {
     } finally {
       setUploadingImage(false);
     }
+  };
+
+  // Fetch available sports
+  const fetchSports = async () => {
+    try {
+      const response = await axios.get(`${URL}/sports`);
+      if (response.data.success) {
+        setAvailableSports(response.data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching sports:', err);
+    }
+  };
+
+  // Update coach sports
+  const updateCoachSports = async () => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await axios.put(
+        `${URL}/coaches/profile/sports`,
+        { sportIds: selectedSports },
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+
+      if (response.data.success) {
+        setSuccessMessage('Sports updated successfully!');
+        setTimeout(() => setSuccessMessage(''), 3000);
+        fetchProfile(); // Refresh profile data
+      }
+    } catch (err) {
+      console.error('Error updating sports:', err);
+      setError(err.response?.data?.message || 'Failed to update sports');
+    }
+  };
+
+  // Handle gallery images upload
+  const handleGalleryUpload = async (e) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingGallery(true);
+    setError('');
+
+    try {
+      const token = localStorage.getItem('access_token');
+      const formData = new FormData();
+
+      // Upload multiple images
+      Array.from(files).forEach(file => {
+        formData.append('images', file);
+      });
+
+      // First upload to cloudinary
+      const uploadResponse = await axios.post(`${URL}/upload/images`, formData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      if (uploadResponse.data.success) {
+        const imageUrls = uploadResponse.data.data.urls;
+
+        // Then save to coach profile
+        const saveResponse = await axios.post(
+          `${URL}/coaches/profile/gallery-images`,
+          { images: imageUrls },
+          { headers: { 'Authorization': `Bearer ${token}` } }
+        );
+
+        if (saveResponse.data.success) {
+          setGalleryImages(saveResponse.data.data.galleryImages);
+          setSuccessMessage('Gallery images uploaded successfully!');
+          setTimeout(() => setSuccessMessage(''), 3000);
+        }
+      }
+    } catch (err) {
+      console.error('Error uploading gallery images:', err);
+      setError(err.response?.data?.message || 'Failed to upload gallery images');
+    } finally {
+      setUploadingGallery(false);
+    }
+  };
+
+  // Delete gallery image
+  const deleteGalleryImage = async (imageUrl) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await axios.delete(
+        `${URL}/coaches/profile/gallery-images`,
+        {
+          headers: { 'Authorization': `Bearer ${token}` },
+          data: { imageUrl }
+        }
+      );
+
+      if (response.data.success) {
+        setGalleryImages(response.data.data.galleryImages);
+        setSuccessMessage('Gallery image deleted successfully!');
+        setTimeout(() => setSuccessMessage(''), 3000);
+      }
+    } catch (err) {
+      console.error('Error deleting gallery image:', err);
+      setError(err.response?.data?.message || 'Failed to delete gallery image');
+    }
+  };
+
+  // Handle sport selection
+  const handleSportToggle = (sportId) => {
+    setSelectedSports(prev => {
+      if (prev.includes(sportId)) {
+        return prev.filter(id => id !== sportId);
+      } else {
+        return [...prev, sportId];
+      }
+    });
   };
 
   // Fetch coach profile
@@ -216,6 +354,9 @@ const Profile = () => {
       });
 
       if (response.data.success) {
+        // Also update sports
+        await updateCoachSports();
+
         setSuccessMessage('Profile updated successfully!');
         setEditMode(false);
 
@@ -315,7 +456,16 @@ const Profile = () => {
 
   useEffect(() => {
     fetchProfile();
+    fetchSports();
   }, []);
+
+  // Update selected sports and gallery images when profile loads
+  useEffect(() => {
+    if (profile?.Coach) {
+      setSelectedSports(profile.Coach.Sports?.map(s => s.id) || []);
+      setGalleryImages(profile.Coach.galleryImages || []);
+    }
+  }, [profile]);
 
   if (loading) {
     return (
@@ -693,6 +843,115 @@ const Profile = () => {
               )}
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Sports Offered */}
+      <div className='bg-white rounded-lg shadow-md border border-black border-r-[6px] border-b-[4px] p-6 mb-6'>
+        <h3 className='font-semibold text-lg mb-4'>Sports I Coach</h3>
+
+        {editMode ? (
+          <div className='space-y-3'>
+            <p className='text-sm text-gray-600 mb-3'>Select all sports you coach:</p>
+            <div className='grid grid-cols-2 md:grid-cols-3 gap-3'>
+              {availableSports.map(sport => (
+                <label
+                  key={sport.id}
+                  className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                    selectedSports.includes(sport.id)
+                      ? 'border-purple-500 bg-purple-50'
+                      : 'border-gray-200 hover:border-purple-300'
+                  }`}
+                >
+                  <input
+                    type='checkbox'
+                    checked={selectedSports.includes(sport.id)}
+                    onChange={() => handleSportToggle(sport.id)}
+                    className='mr-2'
+                  />
+                  <span className='text-xl mr-2'>{sport.icon}</span>
+                  <span className='text-sm font-medium'>{sport.name}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div>
+            {profile?.Coach?.Sports && profile.Coach.Sports.length > 0 ? (
+              <div className='flex flex-wrap gap-2'>
+                {profile.Coach.Sports.map(sport => (
+                  <span
+                    key={sport.id}
+                    className='inline-flex items-center px-3 py-2 bg-purple-100 text-purple-800 rounded-lg text-sm font-medium'
+                  >
+                    <span className='text-xl mr-2'>{sport.icon}</span>
+                    {sport.name}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className='text-gray-500 text-sm'>No sports selected yet</p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Gallery Images */}
+      <div className='bg-white rounded-lg shadow-md border border-black border-r-[6px] border-b-[4px] p-6 mb-6'>
+        <h3 className='font-semibold text-lg mb-4'>Gallery Photos</h3>
+
+        <div className='space-y-4'>
+          {/* Upload Button */}
+          <div>
+            <label className='flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-purple-500 transition-colors'>
+              <input
+                type='file'
+                multiple
+                accept='image/*'
+                onChange={handleGalleryUpload}
+                className='hidden'
+                disabled={uploadingGallery}
+              />
+              {uploadingGallery ? (
+                <div className='flex items-center text-purple-600'>
+                  <Loader size={20} className='mr-2 animate-spin' />
+                  <span>Uploading...</span>
+                </div>
+              ) : (
+                <div className='flex items-center text-gray-600'>
+                  <Upload size={20} className='mr-2' />
+                  <span>Upload Gallery Photos (Multiple)</span>
+                </div>
+              )}
+            </label>
+            <p className='text-xs text-gray-500 mt-1'>Upload multiple images (max 5MB each)</p>
+          </div>
+
+          {/* Image Gallery */}
+          {galleryImages.length > 0 ? (
+            <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'>
+              {galleryImages.map((imageUrl, index) => (
+                <div key={index} className='relative group'>
+                  <img
+                    src={imageUrl}
+                    alt={`Gallery ${index + 1}`}
+                    className='w-full h-32 object-cover rounded-lg'
+                  />
+                  <button
+                    onClick={() => deleteGalleryImage(imageUrl)}
+                    className='absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600'
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className='text-center py-8 border-2 border-dashed border-gray-200 rounded-lg'>
+              <ImageIcon size={48} className='mx-auto text-gray-300 mb-2' />
+              <p className='text-gray-500 text-sm'>No gallery images yet</p>
+            </div>
+          )}
         </div>
       </div>
 
