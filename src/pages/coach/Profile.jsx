@@ -15,13 +15,16 @@ import {
   DollarSign,
   Award,
   AlertCircle,
+  AlertTriangle,
   Check,
   RefreshCw,
   Camera,
   Upload,
   Image as ImageIcon,
   Trash2,
-  Loader
+  Loader,
+  FileText,
+  ShieldCheck
 } from 'lucide-react';
 
 const Profile = () => {
@@ -34,8 +37,13 @@ const Profile = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [editMode, setEditMode] = useState(false);
 
-  // File upload ref
+  // File upload refs
   const profileImageRef = useRef(null);
+  const certificateImageRef = useRef(null);
+
+  // Certificate image state
+  const [certificateImage, setCertificateImage] = useState(null);
+  const [uploadingCertificate, setUploadingCertificate] = useState(false);
 
   // Form data
   const [formData, setFormData] = useState({
@@ -156,6 +164,62 @@ const Profile = () => {
       setError('Failed to upload profile photo');
     } finally {
       setUploadingImage(false);
+    }
+  };
+
+  // Handle certificate image upload
+  const handleCertificateImageUpload = async (file) => {
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please select a valid image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image size should be less than 5MB');
+      return;
+    }
+
+    try {
+      setUploadingCertificate(true);
+      setError('');
+
+      const token = localStorage.getItem('access_token');
+      const formData = new FormData();
+      formData.append('image', file);
+
+      // Upload using our backend API
+      const uploadResponse = await axios.post(`${URL}/upload/image`, formData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      if (uploadResponse.data.success) {
+        const imageUrl = uploadResponse.data.data.url;
+
+        // Update coach profile with certificate image
+        const response = await axios.post(`${URL}/coaches/profile/certificate-image`, {
+          imageUrl
+        }, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.data.success) {
+          setCertificateImage(imageUrl);
+          setSuccessMessage('Certificate image uploaded successfully!');
+          setTimeout(() => setSuccessMessage(''), 3000);
+        }
+      }
+    } catch (err) {
+      console.error('Error uploading certificate image:', err);
+      setError('Failed to upload certificate image');
+    } finally {
+      setUploadingCertificate(false);
     }
   };
 
@@ -311,6 +375,9 @@ const Profile = () => {
 
         // Update profile image
         setProfileImage(coachData.profileImage || coachData.User?.profileImage);
+
+        // Update certificate image
+        setCertificateImage(coachData.certificateImage);
 
         // Update availability if exists
         if (coachData.availability) {
@@ -559,6 +626,35 @@ const Profile = () => {
         </div>
       )}
 
+      {/* Profile Visibility Warning */}
+      {profile && (!certificateImage || !profileImage) && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" />
+            <div>
+              <h4 className="font-semibold text-amber-800 mb-1">Your profile is not visible to users</h4>
+              <p className="text-sm text-amber-700 mb-2">
+                To make your profile visible in search results and sport categories, please upload the following:
+              </p>
+              <ul className="text-sm text-amber-700 space-y-1">
+                {!profileImage && (
+                  <li className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
+                    Profile photo (click your photo above to upload)
+                  </li>
+                )}
+                {!certificateImage && (
+                  <li className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
+                    Certificate image (scroll down to Certifications section)
+                  </li>
+                )}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Basic Information */}
       <div className='border-b pb-6 mb-6'>
         <div className='flex justify-between items-center mb-4'>
@@ -704,6 +800,97 @@ const Profile = () => {
               placeholder="e.g., UEFA License, NASM CPT (comma separated)"
             />
           </div>
+        </div>
+      </div>
+
+      {/* Certificate Image Section */}
+      <div className='bg-white rounded-lg shadow-md border border-black border-r-[6px] border-b-[4px] p-6 mb-6'>
+        <div className='flex items-center justify-between mb-4'>
+          <h3 className='font-semibold text-lg flex items-center gap-2'>
+            <FileText size={20} />
+            Certificate Document
+          </h3>
+          {certificateImage && (
+            <span className='flex items-center gap-1 text-green-600 text-sm font-medium'>
+              <ShieldCheck size={16} />
+              Uploaded
+            </span>
+          )}
+        </div>
+
+        <p className='text-gray-600 text-sm mb-4'>
+          Upload a photo of your coaching certificate or qualification document. This helps verify your credentials and makes your profile visible to users.
+        </p>
+
+        <div className='space-y-4'>
+          {/* Current Certificate Preview */}
+          {certificateImage ? (
+            <div className='space-y-3'>
+              <div className='relative group'>
+                <img
+                  src={certificateImage}
+                  alt="Certificate"
+                  className='w-full max-w-md h-48 object-cover rounded-lg border border-gray-300'
+                />
+                <div className="absolute inset-0 max-w-md bg-black bg-opacity-50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={() => certificateImageRef.current?.click()}
+                    disabled={uploadingCertificate}
+                    className="flex items-center gap-2 px-4 py-2 bg-white text-gray-800 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                  >
+                    <Camera size={18} />
+                    Replace Certificate
+                  </button>
+                </div>
+              </div>
+              <p className='text-xs text-gray-500'>Hover over the image to replace it</p>
+            </div>
+          ) : (
+            <label className='flex flex-col items-center justify-center w-full max-w-md h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 hover:border-purple-400 transition-all'>
+              <div className='flex flex-col items-center justify-center py-6'>
+                {uploadingCertificate ? (
+                  <>
+                    <Loader size={32} className='text-purple-500 animate-spin mb-2' />
+                    <p className='text-sm text-gray-600'>Uploading...</p>
+                  </>
+                ) : (
+                  <>
+                    <Upload size={32} className='text-gray-400 mb-2' />
+                    <p className='text-sm text-gray-600 font-medium'>Click to upload certificate image</p>
+                    <p className='text-xs text-gray-400 mt-1'>PNG, JPG up to 5MB</p>
+                  </>
+                )}
+              </div>
+              <input
+                ref={certificateImageRef}
+                type='file'
+                accept='image/*'
+                onChange={(e) => handleCertificateImageUpload(e.target.files[0])}
+                className='hidden'
+                disabled={uploadingCertificate}
+              />
+            </label>
+          )}
+
+          {/* Hidden file input for replacing certificate */}
+          {certificateImage && (
+            <input
+              ref={certificateImageRef}
+              type='file'
+              accept='image/*'
+              onChange={(e) => handleCertificateImageUpload(e.target.files[0])}
+              className='hidden'
+              disabled={uploadingCertificate}
+            />
+          )}
+
+          {/* Upload status indicators */}
+          {uploadingCertificate && (
+            <div className='flex items-center gap-2 text-purple-600'>
+              <Loader size={16} className='animate-spin' />
+              <span className='text-sm'>Uploading certificate...</span>
+            </div>
+          )}
         </div>
       </div>
 

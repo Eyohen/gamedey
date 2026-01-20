@@ -300,13 +300,14 @@
 
 // pages/Login.jsx
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   RiMailLine,
   RiLockLine,
   RiEyeLine,
   RiEyeOffLine,
-  RiErrorWarningLine
+  RiErrorWarningLine,
+  RiCheckboxCircleLine
 } from 'react-icons/ri';
 import { useAuth } from '../../context/AuthContext';
 import authpic from '../../assets/authpic.png';
@@ -315,9 +316,14 @@ import { LuUserRoundPlus } from "react-icons/lu";
 
 const FacilityLogin = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
+
+  // Get success message from registration redirect
+  const successMessage = location.state?.message;
+
   const [formData, setFormData] = useState({
-    email: '',
+    email: location.state?.email || '',
     password: '',
     rememberMe: false
   });
@@ -447,6 +453,14 @@ const FacilityLogin = () => {
           </div>
 
           <div className="mt-6 w-full">
+            {/* Success Message from Registration */}
+            {successMessage && (
+              <div className="bg-green-50 border border-green-200 rounded-md p-3 mb-4 flex items-start">
+                <RiCheckboxCircleLine className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                <span className="text-sm text-green-700">{successMessage}</span>
+              </div>
+            )}
+
             {/* Error Display - Mobile Responsive */}
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-md p-3 mb-4 flex items-start sm:items-center">

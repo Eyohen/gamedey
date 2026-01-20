@@ -791,11 +791,14 @@ const FacilityRegistration = () => {
 
       if (result.success) {
         console.log('✅ Registration successful:', result.data);
-        setSuccess('Account created successfully! Redirecting to dashboard...');
-        
-        setTimeout(() => {
-          navigate("/dashboard");
-        }, 2000);
+        // Don't log in automatically - user must verify email first
+        // Navigate to login page with verification message
+        navigate("/facility/login", {
+          state: {
+            message: 'Registration successful! Please check your email to verify your account before logging in.',
+            email: formData.email
+          }
+        });
       } else {
         console.log('❌ Registration failed:', result.message);
         setError(result.message || 'Registration failed');

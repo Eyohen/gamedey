@@ -593,7 +593,7 @@
 
 
 //pages/Register
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   RiMailLine,
@@ -601,7 +601,10 @@ import {
   RiEyeLine,
   RiEyeOffLine,
   RiErrorWarningLine,
-  RiUserLine
+  RiUserLine,
+  RiUploadCloud2Line,
+  RiCloseLine,
+  RiInformationLine
 } from 'react-icons/ri';
 import axios from 'axios';
 import { URL } from '../../url';
@@ -625,6 +628,9 @@ const Register = () => {
     hourlyRate: '',
     specialties: [],
     certifications: [],
+    certificateImage: null,
+    country: 'Nigeria',
+    state: '',
     facilityName: '',
     facilityAddress: '',
     facilityDescription: '',
@@ -633,17 +639,95 @@ const Register = () => {
     capacity: ''
   });
 
+  const [certificatePreview, setCertificatePreview] = useState(null);
+
+  // Nigerian states for coach registration
+  const nigerianStates = [
+    { id: 'abuja', name: 'Abuja' },
+    { id: 'lagos', name: 'Lagos' },
+    { id: 'portharcourt', name: 'Port Harcourt' },
+    { id: 'uyo', name: 'Uyo' }
+  ];
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedRole, setSelectedRole] = useState('user');
+  const [availableSports, setAvailableSports] = useState([]);
+  const [sportsLoading, setSportsLoading] = useState(false);
+
+  // Fetch available sports when component mounts
+  useEffect(() => {
+    const fetchSports = async () => {
+      setSportsLoading(true);
+      try {
+        const response = await axios.get(`${URL}/sports`);
+        if (response.data.success) {
+          setAvailableSports(response.data.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch sports:', err);
+        // Fallback to default sports list if API fails
+        setAvailableSports([
+          { id: '1', name: 'Football', icon: '⚽' },
+          { id: '2', name: 'Basketball', icon: '🏀' },
+          { id: '3', name: 'Tennis', icon: '🎾' },
+          { id: '4', name: 'Volleyball', icon: '🏐' },
+          { id: '5', name: 'Swimming', icon: '🏊‍♂️' },
+          { id: '6', name: 'Badminton', icon: '🏸' },
+          { id: '7', name: 'Table Tennis', icon: '🏓' },
+          { id: '8', name: 'Fitness Training', icon: '💪' }
+        ]);
+      } finally {
+        setSportsLoading(false);
+      }
+    };
+    fetchSports();
+  }, []);
 
   const roles = [
     { id: 'user', label: 'User' },
     { id: 'facility-owner', label: 'Facility Owner' },
     { id: 'coach', label: 'Coach' }
   ];
+
+  // Handle sport selection toggle
+  const handleSportToggle = (sportName) => {
+    setFormData(prev => ({
+      ...prev,
+      specialties: prev.specialties.includes(sportName)
+        ? prev.specialties.filter(s => s !== sportName)
+        : [...prev.specialties, sportName]
+    }));
+    setError('');
+  };
+
+  // Handle certificate image upload
+  const handleCertificateImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError('Please upload an image file (JPG, PNG, etc.)');
+        return;
+      }
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Image size should be less than 5MB');
+        return;
+      }
+      setFormData(prev => ({ ...prev, certificateImage: file }));
+      setCertificatePreview(window.URL.createObjectURL(file));
+      setError('');
+    }
+  };
+
+  // Remove certificate image
+  const removeCertificateImage = () => {
+    setFormData(prev => ({ ...prev, certificateImage: null }));
+    setCertificatePreview(null);
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -679,9 +763,19 @@ const Register = () => {
     }
 
     // Role-specific validation
-    if (selectedRole === 'coach' && (!formData.bio || !formData.hourlyRate)) {
-      setError('Please fill in bio and hourly rate for coach registration');
-      return;
+    if (selectedRole === 'coach') {
+      if (!formData.bio || !formData.hourlyRate) {
+        setError('Please fill in bio and hourly rate for coach registration');
+        return;
+      }
+      if (!formData.specialties || formData.specialties.length === 0) {
+        setError('Please add at least one specialty/sport for coach registration');
+        return;
+      }
+      if (!formData.state) {
+        setError('Please select your state');
+        return;
+      }
     }
 
     if (selectedRole === 'facility-owner' && (!formData.facilityName || !formData.facilityAddress)) {
@@ -691,48 +785,80 @@ const Register = () => {
 
     setIsLoading(true);
     try {
-      // Prepare data based on role
-      let registrationData = {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        password: formData.password,
-        phone: formData.phone
-      };
-
-      if (selectedRole === 'coach') {
-        registrationData = {
-          ...registrationData,
-          bio: formData.bio,
-          experience: parseInt(formData.experience) || 0,
-          hourlyRate: parseFloat(formData.hourlyRate) || 0,
-          specialties: formData.specialties,
-          certifications: formData.certifications
-        };
-      } else if (selectedRole === 'facility-owner') {
-        registrationData = {
-          ...registrationData,
-          facilityName: formData.facilityName,
-          facilityAddress: formData.facilityAddress,
-          facilityDescription: formData.facilityDescription,
-          pricePerHour: parseFloat(formData.pricePerHour) || 0,
-          amenities: formData.amenities,
-          capacity: parseInt(formData.capacity) || 1
-        };
-      }
-
       // Determine endpoint based on role
-      const endpoint = selectedRole === 'user' ? '/auth/register' : 
+      const endpoint = selectedRole === 'user' ? '/auth/register' :
                      selectedRole === 'coach' ? '/auth/register/coach' :
                      selectedRole === 'facility-owner' ? '/auth/register/facility' : '/auth/register';
 
-      console.log('Registration data:', registrationData);
-      console.log('Endpoint:', endpoint);
-      console.log('Full URL:', `${URL}${endpoint}`);
+      let response;
 
-      const response = await axios.post(`${URL}${endpoint}`, registrationData, {
-        timeout: 50000,
-      });
+      // For coach registration, use FormData to support file upload
+      if (selectedRole === 'coach') {
+        const registrationFormData = new FormData();
+        registrationFormData.append('firstName', formData.firstName.trim());
+        registrationFormData.append('lastName', formData.lastName.trim());
+        registrationFormData.append('email', formData.email.trim().toLowerCase());
+        registrationFormData.append('password', formData.password);
+        registrationFormData.append('phone', formData.phone.trim());
+        registrationFormData.append('bio', formData.bio.trim());
+        registrationFormData.append('experience', parseInt(formData.experience) || 0);
+        registrationFormData.append('hourlyRate', parseFloat(formData.hourlyRate) || 0);
+        registrationFormData.append('country', formData.country);
+        registrationFormData.append('state', formData.state);
+
+        // Append arrays as JSON strings
+        registrationFormData.append('specialties', JSON.stringify(formData.specialties));
+        registrationFormData.append('certifications', JSON.stringify(
+          Array.isArray(formData.certifications)
+            ? formData.certifications
+            : formData.certifications.split(',').map(s => s.trim()).filter(s => s)
+        ));
+
+        // Append certificate image if provided
+        if (formData.certificateImage) {
+          registrationFormData.append('certificateImage', formData.certificateImage);
+        }
+
+        console.log('Registration data (FormData for coach)');
+        console.log('Endpoint:', endpoint);
+        console.log('Full URL:', `${URL}${endpoint}`);
+
+        response = await axios.post(`${URL}${endpoint}`, registrationFormData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          },
+          timeout: 50000,
+        });
+      } else {
+        // For user and facility-owner, use regular JSON
+        let registrationData = {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          password: formData.password,
+          phone: formData.phone
+        };
+
+        if (selectedRole === 'facility-owner') {
+          registrationData = {
+            ...registrationData,
+            facilityName: formData.facilityName,
+            facilityAddress: formData.facilityAddress,
+            facilityDescription: formData.facilityDescription,
+            pricePerHour: parseFloat(formData.pricePerHour) || 0,
+            amenities: formData.amenities,
+            capacity: parseInt(formData.capacity) || 1
+          };
+        }
+
+        console.log('Registration data:', registrationData);
+        console.log('Endpoint:', endpoint);
+        console.log('Full URL:', `${URL}${endpoint}`);
+
+        response = await axios.post(`${URL}${endpoint}`, registrationData, {
+          timeout: 50000,
+        });
+      }
 
       console.log('Full response:', response);
       console.log('Response data:', response.data);
@@ -948,7 +1074,7 @@ const Register = () => {
                       value={formData.bio}
                       onChange={handleChange}
                       className="block w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base resize-none"
-                      placeholder="Tell us about yourself..."
+                      placeholder="Tell us about your coaching experience and philosophy..."
                     />
                   </div>
 
@@ -986,6 +1112,157 @@ const Register = () => {
                         className="block w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base"
                         placeholder="5000"
                       />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Specialties / Sports *
+                    </label>
+                    {sportsLoading ? (
+                      <div className="flex items-center justify-center py-4">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#7042D2]"></div>
+                        <span className="ml-2 text-sm text-gray-500">Loading sports...</span>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                        {availableSports.map((sport) => (
+                          <label
+                            key={sport.id}
+                            className={`flex items-center gap-2 p-2.5 border rounded-lg cursor-pointer transition-all ${
+                              formData.specialties.includes(sport.name)
+                                ? 'border-[#7042D2] bg-purple-50 ring-1 ring-[#7042D2]'
+                                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={formData.specialties.includes(sport.name)}
+                              onChange={() => handleSportToggle(sport.name)}
+                              className="sr-only"
+                            />
+                            <span className="text-lg">{sport.icon}</span>
+                            <span className="text-sm font-medium text-gray-700 truncate">{sport.name}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                    {formData.specialties.length > 0 && (
+                      <p className="mt-2 text-xs text-[#7042D2]">
+                        Selected: {formData.specialties.join(', ')}
+                      </p>
+                    )}
+                    <p className="mt-1 text-xs text-gray-500">Select the sports you specialize in coaching</p>
+                  </div>
+
+                  {/* Certifications Section */}
+                  <div className="space-y-4">
+                    <div>
+                      <label htmlFor="certifications" className="block text-sm font-medium text-gray-700 mb-1">
+                        Certifications
+                      </label>
+                      <input
+                        id="certifications"
+                        name="certifications"
+                        type="text"
+                        value={Array.isArray(formData.certifications) ? formData.certifications.join(', ') : formData.certifications}
+                        onChange={(e) => {
+                          setFormData(prev => ({
+                            ...prev,
+                            certifications: e.target.value.split(',').map(s => s.trim()).filter(s => s)
+                          }));
+                          setError('');
+                        }}
+                        className="block w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base"
+                        placeholder="e.g., UEFA License, NASM CPT, CAF Coaching Badge"
+                      />
+                      <p className="mt-1 text-xs text-gray-500">Separate multiple certifications with commas</p>
+                    </div>
+
+                    {/* Certificate Image Upload */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Certificate Image
+                      </label>
+                      {!certificatePreview ? (
+                        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <RiUploadCloud2Line className="w-8 h-8 mb-2 text-gray-400" />
+                            <p className="mb-1 text-sm text-gray-500">
+                              <span className="font-semibold">Click to upload</span> certificate image
+                            </p>
+                            <p className="text-xs text-gray-400">PNG, JPG up to 5MB</p>
+                          </div>
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={handleCertificateImageChange}
+                          />
+                        </label>
+                      ) : (
+                        <div className="relative">
+                          <img
+                            src={certificatePreview}
+                            alt="Certificate preview"
+                            className="w-full h-32 object-cover rounded-lg border border-gray-300"
+                          />
+                          <button
+                            type="button"
+                            onClick={removeCertificateImage}
+                            className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                          >
+                            <RiCloseLine className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Disclaimer */}
+                    <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                      <RiInformationLine className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <p className="text-xs text-amber-700">
+                        <span className="font-semibold">Note:</span> You can skip uploading certifications for now, but your profile will not be visible to users until you upload your certificates and a profile photo. You can complete this later in your profile settings.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Country and State */}
+                  <div className='flex flex-col sm:flex-row gap-4'>
+                    <div className="flex-1">
+                      <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">
+                        Country
+                      </label>
+                      <select
+                        id="country"
+                        name="country"
+                        value={formData.country}
+                        onChange={handleChange}
+                        className="block w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base bg-white"
+                      >
+                        <option value="Nigeria">Nigeria</option>
+                      </select>
+                    </div>
+
+                    <div className="flex-1">
+                      <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">
+                        State *
+                      </label>
+                      <select
+                        id="state"
+                        name="state"
+                        required
+                        value={formData.state}
+                        onChange={handleChange}
+                        className="block w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base bg-white"
+                      >
+                        <option value="">Select your state</option>
+                        {nigerianStates.map((state) => (
+                          <option key={state.id} value={state.name}>
+                            {state.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                 </>
