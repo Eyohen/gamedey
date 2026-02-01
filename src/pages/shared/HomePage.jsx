@@ -849,8 +849,6 @@ import Navbar from '../../components/Navbar';
 // Your actual image imports
 import hero from '../../assets/hero.svg';
 import stadium1 from '../../assets/stadium1.png';
-import stadium2 from '../../assets/stadium2.png';
-import stadium3 from '../../assets/stadium3.png';
 import makesiteasier from '../../assets/makesiteasier.png';
 import signascoach from '../../assets/signascoach.png';
 import signasfacility from '../../assets/signasfacility.png';
@@ -878,51 +876,44 @@ export default function HomePage() {
     hasSearched: false
   });
   const [sports, setSports] = useState([]);
+  const [topFacilities, setTopFacilities] = useState([]);
+  const [loadingFacilities, setLoadingFacilities] = useState(true);
 
-  // Fetch available sports for dropdown
+  // Fetch available sports from API
   useEffect(() => {
     const fetchSports = async () => {
       try {
-        // You might need to create a sports endpoint or get this from your existing data
-        // For now, using common sports
-        setSports([
-          { id: '1', name: 'Football' },
-          { id: '2', name: 'Basketball' },
-          { id: '3', name: 'Tennis' },
-          { id: '4', name: 'Swimming' },
-          { id: '5', name: 'Cricket' },
-          { id: '6', name: 'Badminton' }
-        ]);
+        const response = await axios.get(`${URL}/sports`);
+        if (response.data.success) {
+          setSports(response.data.data);
+        }
       } catch (error) {
         console.error('Error fetching sports:', error);
       }
     };
-    
+
     fetchSports();
   }, []);
 
-  // Helper function to extract key location terms
-  const extractLocationKeywords = (locationString) => {
-    // Common location keywords to prioritize
-    const locationKeywords = [
-      'lekki', 'victoria island', 'vi', 'ikoyi', 'surulere', 'yaba', 'ikeja', 
-      'maryland', 'gbagada', 'magodo', 'ajah', 'banana island', 'lagos island',
-      'festac', 'isolo', 'mushin', 'alaba', 'oshodi', 'ketu', 'mile 2',
-      'apapa', 'badagry', 'epe', 'ikorodu', 'kosofe', 'agege', 'ifako-ijaiye'
-    ];
+  // Fetch top facilities for homepage
+  useEffect(() => {
+    const fetchTopFacilities = async () => {
+      try {
+        const response = await axios.get(`${URL}/facilities`, {
+          params: { limit: 6 }
+        });
+        if (response.data.success) {
+          setTopFacilities(response.data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching top facilities:', error);
+      } finally {
+        setLoadingFacilities(false);
+      }
+    };
 
-    const searchTerms = locationString.toLowerCase()
-      .replace(/[,\-]/g, ' ') // Replace commas and hyphens with spaces
-      .split(/\s+/)           // Split by whitespace
-      .filter(term => term.length > 2); // Filter out very short terms
-
-    // Prioritize Nigerian location keywords, otherwise use all terms
-    const foundKeywords = searchTerms.filter(term => 
-      locationKeywords.some(keyword => keyword.includes(term) || term.includes(keyword))
-    );
-
-    return foundKeywords.length > 0 ? foundKeywords.join(' ') : searchTerms.join(' ');
-  };
+    fetchTopFacilities();
+  }, []);
 
   // Handle search input changes
   const handleSearchChange = (e) => {
@@ -936,42 +927,24 @@ export default function HomePage() {
   // Perform search
   const handleSearch = async (e) => {
     e.preventDefault();
-    
-    if (!searchData.location.trim() && !searchData.sport.trim()) {
-      alert('Please enter a location or select a sport to search');
+
+    if (!searchData.location && !searchData.sport) {
+      alert('Please select a location or sport to search');
       return;
     }
 
     setSearchResults(prev => ({ ...prev, loading: true, hasSearched: true }));
 
     try {
-      // Prepare search terms - extract key location words
-      const locationTerms = searchData.location.trim();
-      const searchTerm = locationTerms ? extractLocationKeywords(locationTerms) : '';
+      const params = { limit: 12 };
+      if (searchData.location) params.search = searchData.location;
+      if (searchData.sport) params.sport = searchData.sport;
 
-      // Search facilities and coaches simultaneously
-      const [facilitiesResponse, coachesResponse] = await Promise.all([
-        // Search facilities
-        axios.get(`${URL}/facilities`, {
-          params: {
-            search: searchTerm,
-            sport: searchData.sport,
-            limit: 6
-          }
-        }),
-        // Search coaches
-        axios.get(`${URL}/coaches`, {
-          params: {
-            search: searchTerm,
-            sport: searchData.sport,
-            limit: 6
-          }
-        })
-      ]);
+      const facilitiesResponse = await axios.get(`${URL}/facilities`, { params });
 
       setSearchResults({
         facilities: facilitiesResponse.data.success ? facilitiesResponse.data.data : [],
-        coaches: coachesResponse.data.success ? coachesResponse.data.data : [],
+        coaches: [],
         loading: false,
         hasSearched: true
       });
@@ -1030,20 +1003,24 @@ export default function HomePage() {
             {/* Search Form - Mobile First Design */}
             <div className="bg-white rounded-xl shadow-lg p-4 md:p-6 max-w-2xl mx-auto">
               <form onSubmit={handleSearch} className="space-y-3 md:space-y-0 md:flex md:gap-3">
-                <input 
+                <select
                   name="location"
                   value={searchData.location}
                   onChange={handleSearchChange}
-                  className="w-full md:flex-1 border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" 
-                  placeholder="Enter location (e.g., Lekki, Victoria Island)"
-                />
+                  className="w-full md:flex-1 border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                >
+                  <option value="">Select location</option>
+                  <option value="Lagos">Lagos</option>
+                  <option value="Uyo">Uyo</option>
+                  <option value="Abuja">Abuja</option>
+                </select>
                 <select
                   name="sport"
                   value={searchData.sport}
                   onChange={handleSearchChange}
-                  className="w-full md:flex-1 border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full md:flex-1 border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
                 >
-                  <option value="">Select sport (optional)</option>
+                  <option value="">Select sport</option>
                   {sports.map(sport => (
                     <option key={sport.id} value={sport.id}>{sport.name}</option>
                   ))}
@@ -1087,7 +1064,7 @@ export default function HomePage() {
                 <div className="text-center mb-8">
                   <h2 className="text-2xl md:text-3xl font-bold mb-2">Search Results</h2>
                   <p className="text-gray-600">
-                    Found {searchResults.facilities.length + searchResults.coaches.length} results
+                    Found {searchResults.facilities.length} {searchResults.facilities.length === 1 ? 'facility' : 'facilities'}
                     {searchData.location && ` in ${searchData.location}`}
                     {searchData.sport && ` for ${sports.find(s => s.id === searchData.sport)?.name}`}
                   </p>
@@ -1292,20 +1269,20 @@ export default function HomePage() {
                 )}
 
                 {/* No Results */}
-                {searchResults.facilities.length === 0 && searchResults.coaches.length === 0 && (
+                {searchResults.facilities.length === 0 && (
                   <div className="text-center py-12">
                     <div className="text-gray-400 mb-4">
                       <Search size={48} className="mx-auto" />
                     </div>
-                    <h3 className="text-xl font-semibold mb-2">No results found</h3>
+                    <h3 className="text-xl font-semibold mb-2">No facilities found</h3>
                     <p className="text-gray-600 mb-4">
-                      Try searching with different keywords or check out our featured facilities and coaches below.
+                      No facilities match your search. Try a different location or sport.
                     </p>
                     <button
                       onClick={clearSearch}
                       className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
                     >
-                      View All Options
+                      View All Facilities
                     </button>
                   </div>
                 )}
@@ -1315,63 +1292,101 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* Top Searched Sport Section - Only show if no search results */}
+      {/* Top Searched Sport Facilities - Only show if no search results */}
       {!searchResults.hasSearched && (
         <section className="py-8 md:py-16 px-4">
           <div className="max-w-6xl mx-auto">
             <h2 className="text-2xl md:text-3xl font-bold text-center md:text-left mb-6 md:mb-8">
-              Top Searched Sport Facilities in Lekki
+              Top Searched Sport Facilities in Lagos
             </h2>
-            
-            {/* Mobile: Horizontal scroll, Desktop: Grid */}
-            <div className="md:hidden">
-              <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4">
-                {[
-                  { img: stadium1, name: "Don Man Stadium" },
-                  { img: stadium2, name: "Nick Pitch" },
-                  { img: stadium3, name: "Anderson Stadium" }
-                ].map((stadium, index) => (
-                  <div key={index} className="flex-none w-72 bg-white rounded-xl shadow-md overflow-hidden">
-                    <img src={stadium.img} alt={stadium.name} className="w-full h-40 object-cover" />
-                    <div className="p-4">
-                      <h3 className="font-semibold text-lg mb-2">{stadium.name}</h3>
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                        A vibrant stadium buzzing with energy, filled to the brim with passionate fans cheering for their favorite teams.
-                      </p>
-                      <div className="flex justify-between text-xs text-gray-500 bg-gray-50 rounded-lg p-2">
-                        <span>Mon-Tue</span>
-                        <span>8am-6pm</span>
-                        <span>Lekki Phase1</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
 
-            {/* Desktop Grid */}
-            <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
-                { img: stadium1, name: "Don Man Stadium" },
-                { img: stadium2, name: "Nick Pitch" },
-                { img: stadium3, name: "Anderson Stadium" }
-              ].map((stadium, index) => (
-                <div key={index} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                  <img src={stadium.img} alt={stadium.name} className="w-full h-48 object-cover" />
-                  <div className="p-5">
-                    <h3 className="font-semibold text-xl mb-3">{stadium.name}</h3>
-                    <p className="text-gray-600 mb-4">
-                      A vibrant stadium buzzing with energy, filled to the brim with passionate fans cheering for their favorite teams.
-                    </p>
-                    <div className="flex justify-between text-sm text-gray-500 bg-gray-50 rounded-lg p-3">
-                      <span>Mon-Tue</span>
-                      <span>8am-6pm</span>
-                      <span>Lekki Phase1</span>
-                    </div>
+            {loadingFacilities ? (
+              <div className="flex justify-center items-center h-32">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+              </div>
+            ) : topFacilities.length > 0 ? (
+              <>
+                {/* Mobile: Horizontal scroll */}
+                <div className="md:hidden">
+                  <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4">
+                    {topFacilities.map((facility) => (
+                      <div
+                        key={facility.id}
+                        className="flex-none w-72 bg-white rounded-xl shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+                        onClick={() => navigate(`/choose-facility/${facility.id}`)}
+                      >
+                        <div className="w-full h-40 bg-gray-200">
+                          {facility.images && facility.images.length > 0 ? (
+                            <img src={facility.images[0]} alt={facility.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <img src={stadium1} alt={facility.name} className="w-full h-full object-cover" />
+                          )}
+                        </div>
+                        <div className="p-4">
+                          <h3 className="font-semibold text-lg mb-2">{facility.name}</h3>
+                          <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                            {facility.description || 'Professional sports facility'}
+                          </p>
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center text-yellow-500">
+                              <Star size={16} fill="currentColor" />
+                              <span className="text-sm ml-1">{facility.averageRating || '0.0'}</span>
+                            </div>
+                            <span className="text-purple-600 font-semibold text-sm">
+                              ₦{parseFloat(facility.pricePerHour || 0).toLocaleString()}/hr
+                            </span>
+                          </div>
+                          <div className="mt-2 text-xs text-gray-500 truncate">
+                            {facility.address}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
-            </div>
+
+                {/* Desktop: Grid */}
+                <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {topFacilities.map((facility) => (
+                    <div
+                      key={facility.id}
+                      className="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+                      onClick={() => navigate(`/choose-facility/${facility.id}`)}
+                    >
+                      <div className="w-full h-48 bg-gray-200">
+                        {facility.images && facility.images.length > 0 ? (
+                          <img src={facility.images[0]} alt={facility.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <img src={stadium1} alt={facility.name} className="w-full h-full object-cover" />
+                        )}
+                      </div>
+                      <div className="p-5">
+                        <h3 className="font-semibold text-xl mb-3">{facility.name}</h3>
+                        <p className="text-gray-600 mb-4 line-clamp-2">
+                          {facility.description || 'Professional sports facility'}
+                        </p>
+                        <div className="flex justify-between items-center mb-2">
+                          <div className="flex items-center text-yellow-500">
+                            <Star size={16} fill="currentColor" />
+                            <span className="text-sm ml-1">{facility.averageRating || '0.0'}</span>
+                          </div>
+                          <span className="text-purple-600 font-semibold">
+                            ₦{parseFloat(facility.pricePerHour || 0).toLocaleString()}/hr
+                          </span>
+                        </div>
+                        <div className="text-sm text-gray-500 truncate">
+                          {facility.address}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <p>No facilities available yet. Check back soon!</p>
+              </div>
+            )}
           </div>
         </section>
       )}
