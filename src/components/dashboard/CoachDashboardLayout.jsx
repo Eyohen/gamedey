@@ -1,6 +1,6 @@
-// src/components/dashboard/DashboardLayout.jsx 
-import React, { useState } from 'react';
-import { 
+// src/components/dashboard/DashboardLayout.jsx
+import React, { useState, useEffect } from 'react';
+import {
   Bell,
   User,
   Menu,
@@ -12,12 +12,14 @@ import {
   Search,
   Watch,
   WalletMinimal,
-  OctagonAlert
+  OctagonAlert,
+  Camera
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { URL } from '../../url';
 import { useAuth } from '../../context/AuthContext';
+import toast, { Toaster } from 'react-hot-toast';
 import logo from '../../assets/logo.png';
 import facilities from '../../assets/facilities.png';
 import bookings from '../../assets/bookings.png';
@@ -73,11 +75,101 @@ const DashboardLayout = ({ children }) => {
   const { user, logout } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileChecked, setProfileChecked] = useState(false);
   const location = useLocation();
   const currentPath = location.pathname;
   const navigate = useNavigate();
 
   console.log("layout user", user);
+
+  // Check if coach has uploaded a profile photo
+  useEffect(() => {
+    const checkProfilePhoto = async () => {
+      // Only check once per session
+      if (sessionStorage.getItem('profile_photo_checked')) {
+        const needsPhoto = sessionStorage.getItem('needs_profile_photo') === 'true';
+        if (needsPhoto) {
+          showProfilePhotoReminder();
+        }
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+
+        const response = await axios.get(`${URL}/coaches/profile/me`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.data.success) {
+          const coachData = response.data.data;
+          const hasProfileImage = coachData.profileImage || coachData.User?.profileImage;
+
+          sessionStorage.setItem('profile_photo_checked', 'true');
+          sessionStorage.setItem('needs_profile_photo', (!hasProfileImage).toString());
+
+          if (!hasProfileImage) {
+            showProfilePhotoReminder();
+          }
+        }
+      } catch (err) {
+        console.error('Error checking profile photo:', err);
+      }
+    };
+
+    const showProfilePhotoReminder = () => {
+      toast.custom(
+        (t) => (
+          <div
+            className={`${
+              t.visible ? 'animate-enter' : 'animate-leave'
+            } max-w-sm w-full bg-white shadow-lg rounded-xl pointer-events-auto border border-gray-200 overflow-hidden`}
+          >
+            <div className="bg-gradient-to-r from-[#7042D2] to-[#9b6dff] px-4 py-2">
+              <p className="text-white text-sm font-semibold">Complete Your Profile</p>
+            </div>
+            <div className="p-4">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Camera size={20} className="text-[#7042D2]" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-gray-700">
+                    Upload a profile photo so clients can find and recognize you. Your profile won't be visible without one.
+                  </p>
+                  <div className="flex items-center gap-2 mt-3">
+                    <button
+                      onClick={() => {
+                        toast.dismiss(t.id);
+                        navigate('/coach/profile');
+                      }}
+                      className="px-3 py-1.5 bg-[#7042D2] text-white text-xs font-medium rounded-lg hover:bg-[#5a35a8] transition-colors"
+                    >
+                      Upload Now
+                    </button>
+                    <button
+                      onClick={() => toast.dismiss(t.id)}
+                      className="px-3 py-1.5 text-gray-500 text-xs font-medium hover:text-gray-700 transition-colors"
+                    >
+                      Later
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ),
+        {
+          duration: 15000,
+          position: 'top-right',
+          id: 'profile-photo-reminder',
+        }
+      );
+    };
+
+    checkProfilePhoto();
+  }, [navigate]);
 
   // Handle logout function
   const handleLogout = () => {
@@ -112,6 +204,7 @@ const DashboardLayout = ({ children }) => {
 
   return (
     <div className="flex h-screen text-gray-800">
+      <Toaster />
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
         <div 

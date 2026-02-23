@@ -629,6 +629,7 @@ const Register = () => {
     specialties: [],
     certifications: [],
     certificateImage: null,
+    profileImages: [],
     country: 'Nigeria',
     state: '',
     facilityName: '',
@@ -640,6 +641,7 @@ const Register = () => {
   });
 
   const [certificatePreview, setCertificatePreview] = useState(null);
+  const [profileImagePreviews, setProfileImagePreviews] = useState([]);
 
   // Nigerian states for coach registration
   const nigerianStates = [
@@ -727,6 +729,37 @@ const Register = () => {
   const removeCertificateImage = () => {
     setFormData(prev => ({ ...prev, certificateImage: null }));
     setCertificatePreview(null);
+  };
+
+  // Handle profile image upload (up to 3)
+  const handleProfileImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setError('Please upload an image file (JPG, PNG, etc.)');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image size should be less than 5MB');
+      return;
+    }
+    if (formData.profileImages.length >= 3) {
+      setError('You can upload a maximum of 3 profile photos');
+      return;
+    }
+    setFormData(prev => ({ ...prev, profileImages: [...prev.profileImages, file] }));
+    setProfileImagePreviews(prev => [...prev, window.URL.createObjectURL(file)]);
+    setError('');
+  };
+
+  // Remove a specific profile image by index
+  const removeProfileImage = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      profileImages: prev.profileImages.filter((_, i) => i !== index)
+    }));
+    setProfileImagePreviews(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleChange = (e) => {
@@ -817,6 +850,13 @@ const Register = () => {
         // Append certificate image if provided
         if (formData.certificateImage) {
           registrationFormData.append('certificateImage', formData.certificateImage);
+        }
+
+        // Append profile images if provided (up to 3)
+        if (formData.profileImages.length > 0) {
+          formData.profileImages.forEach((file) => {
+            registrationFormData.append('profileImages', file);
+          });
         }
 
         console.log('Registration data (FormData for coach)');
@@ -1063,6 +1103,49 @@ const Register = () => {
               {/* Coach-specific fields */}
               {selectedRole === 'coach' && (
                 <>
+                  {/* Profile Photos Upload (Optional, up to 3) */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Profile Photos <span className="text-gray-400 font-normal">(Optional - up to 3)</span>
+                    </label>
+                    <p className="text-xs text-gray-400 mb-3">Add photos so clients can recognize you. The first photo will be your main profile picture. You can also add these later.</p>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      {profileImagePreviews.map((preview, index) => (
+                        <div key={index} className="relative flex-shrink-0">
+                          <img
+                            src={preview}
+                            alt={`Profile preview ${index + 1}`}
+                            className={`w-24 h-24 object-cover rounded-xl border-2 ${index === 0 ? 'border-[#7042D2]' : 'border-gray-300'}`}
+                          />
+                          {index === 0 && (
+                            <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-[#7042D2] text-white text-[9px] font-medium px-1.5 py-0.5 rounded-full">
+                              Main
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => removeProfileImage(index)}
+                            className="absolute -top-1 -right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                          >
+                            <RiCloseLine className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                      {formData.profileImages.length < 3 && (
+                        <label className="flex flex-col items-center justify-center w-24 h-24 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors flex-shrink-0">
+                          <RiUploadCloud2Line className="w-6 h-6 text-gray-400" />
+                          <span className="text-[10px] text-gray-400 mt-1">{formData.profileImages.length === 0 ? 'Upload' : 'Add more'}</span>
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={handleProfileImageChange}
+                          />
+                        </label>
+                      )}
+                    </div>
+                  </div>
+
                   <div>
                     <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-1">
                       Bio

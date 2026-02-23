@@ -156,6 +156,8 @@ const Profile = () => {
         if (response.data.success) {
           setProfileImage(imageUrl);
           setSuccessMessage('Profile photo updated successfully!');
+          // Clear the profile photo reminder flag so the toast stops showing
+          sessionStorage.setItem('needs_profile_photo', 'false');
           setTimeout(() => setSuccessMessage(''), 3000);
         }
       }

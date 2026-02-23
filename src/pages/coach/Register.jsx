@@ -577,11 +577,13 @@ const Register = () => {
     specialties: [],
     certifications: '',
     certificateImage: null,
+    profileImage: null,
     country: 'Nigeria',
     state: ''
   });
 
   const [certificatePreview, setCertificatePreview] = useState(null);
+  const [profileImagePreview, setProfileImagePreview] = useState(null);
 
   // Nigerian states for coach registration
   const nigerianStates = [
@@ -672,6 +674,30 @@ const Register = () => {
   const removeCertificateImage = () => {
     setFormData(prev => ({ ...prev, certificateImage: null }));
     setCertificatePreview(null);
+  };
+
+  // Handle profile image upload
+  const handleProfileImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        setError('Please upload an image file (JPG, PNG, etc.)');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Image size should be less than 5MB');
+        return;
+      }
+      setFormData(prev => ({ ...prev, profileImage: file }));
+      setProfileImagePreview(window.URL.createObjectURL(file));
+      setError('');
+    }
+  };
+
+  // Remove profile image
+  const removeProfileImage = () => {
+    setFormData(prev => ({ ...prev, profileImage: null }));
+    setProfileImagePreview(null);
   };
 
   const validateStep1 = () => {
@@ -782,6 +808,11 @@ const Register = () => {
       // Append certificate image if provided
       if (formData.certificateImage) {
         registrationData.append('certificateImage', formData.certificateImage);
+      }
+
+      // Append profile image if provided
+      if (formData.profileImage) {
+        registrationData.append('profileImage', formData.profileImage);
       }
 
       // Call registration API with multipart/form-data
@@ -1042,6 +1073,48 @@ const Register = () => {
               {/* Step 2: Coach Details */}
               {currentStep === 2 && (
                 <>
+                  {/* Profile Photo Upload (Optional) */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Profile Photo <span className="text-gray-400 font-normal">(Optional)</span>
+                    </label>
+                    <div className="flex items-center gap-4">
+                      {!profileImagePreview ? (
+                        <label className={`flex flex-col items-center justify-center w-24 h-24 border-2 border-gray-300 border-dashed rounded-full cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                          <RiUploadCloud2Line className="w-6 h-6 text-gray-400" />
+                          <span className="text-[10px] text-gray-400 mt-1">Upload</span>
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={handleProfileImageChange}
+                            disabled={isLoading}
+                          />
+                        </label>
+                      ) : (
+                        <div className="relative">
+                          <img
+                            src={profileImagePreview}
+                            alt="Profile preview"
+                            className="w-24 h-24 object-cover rounded-full border-2 border-[#7042D2]"
+                          />
+                          <button
+                            type="button"
+                            onClick={removeProfileImage}
+                            disabled={isLoading}
+                            className="absolute -top-1 -right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors disabled:opacity-50"
+                          >
+                            <RiCloseLine className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-600">Add a profile photo so clients can recognize you</p>
+                        <p className="text-xs text-gray-400 mt-1">PNG, JPG up to 5MB. You can also add this later.</p>
+                      </div>
+                    </div>
+                  </div>
+
                   <div>
                     <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-1">
                       Bio
