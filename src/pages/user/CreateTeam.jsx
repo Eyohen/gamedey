@@ -397,7 +397,9 @@ const CreateTeam = () => {
 
   const renderSportField = () => {
     const currentSport = getCurrentSport();
-    
+
+    if (!currentSport) return null;
+
     if (currentSport.name === 'Football') {
       return (
         <div className="w-80 h-96 bg-green-500 relative rounded-lg border-4 border-white overflow-hidden">

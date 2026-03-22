@@ -108,16 +108,19 @@ class BookingService {
       errors.push('Invalid booking type');
     }
 
-    if (data.bookingType === 'facility' && !data.facilityId) {
-      errors.push('Facility ID is required');
-    }
+    // Skip facility/coach validation for package bookings (handled server-side)
+    if (!data.packageId) {
+      if (data.bookingType === 'facility' && !data.facilityId) {
+        errors.push('Facility ID is required');
+      }
 
-    if (data.bookingType === 'coach' && !data.coachId) {
-      errors.push('Coach ID is required');
-    }
+      if (data.bookingType === 'coach' && !data.coachId) {
+        errors.push('Coach ID is required');
+      }
 
-    if (data.bookingType === 'both' && (!data.facilityId || !data.coachId)) {
-      errors.push('Both facility and coach are required for combined booking');
+      if (data.bookingType === 'both' && (!data.facilityId || !data.coachId)) {
+        errors.push('Both facility and coach are required for combined booking');
+      }
     }
 
     if (!data.startTime || !data.endTime) {

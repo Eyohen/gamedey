@@ -42,6 +42,8 @@ import AllCoaches from './pages/user/AllCoaches';
 import WriteReview from './pages/user/WriteReview';
 import SportDetail from './pages/user/SportDetail';
 import BookSession from './pages/user/BookSession';
+import HomeSession from './pages/user/HomeSession';
+import BookPackage from './pages/user/BookPackage';
 
 // Coach Pages
 import CoachDashboard from './pages/coach/Dashboard';
@@ -104,6 +106,22 @@ function App() {
             <ProtectedRoute allowedRoles={['user']}>
               <UserDashboardLayout>
                 <BookSession />
+              </UserDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/home-session/:sportId" element={
+            <ProtectedRoute allowedRoles={['user']}>
+              <UserDashboardLayout>
+                <HomeSession />
+              </UserDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/book-package/:packageId" element={
+            <ProtectedRoute allowedRoles={['user']}>
+              <UserDashboardLayout>
+                <BookPackage />
               </UserDashboardLayout>
             </ProtectedRoute>
           } />

@@ -12,7 +12,8 @@ import {
   ChevronLeft,
   Tag,
   Building2,
-  User as UserIcon
+  User as UserIcon,
+  Home
 } from 'lucide-react';
 import axios from 'axios';
 import { URL } from '../../url';
@@ -77,6 +78,14 @@ const SportDetail = () => {
       return;
     }
     navigate(`/book-session/${sportId}`);
+  };
+
+  const handleHomeSession = () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    navigate(`/home-session/${sportId}`);
   };
 
   const handleBookNow = (type, id) => {
@@ -152,6 +161,27 @@ const SportDetail = () => {
             <span className="sm:hidden">Book Now</span>
           </button>
         </div>
+
+        {/* Home Session CTA */}
+        <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl p-4 sm:p-6 text-white mb-4 sm:mb-6">
+          <h2 className="text-lg sm:text-xl lg:text-2xl font-bold mb-2">Home Session</h2>
+          <p className="mb-3 sm:mb-4 opacity-90 text-sm sm:text-base">Get a personal coach to train you at your preferred location</p>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleHomeSession}
+              className="bg-white text-green-700 px-4 sm:px-8 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold hover:bg-gray-100 transition-colors inline-flex items-center gap-1.5 sm:gap-2"
+            >
+              <Home size={16} className="sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">Find a Coach</span>
+              <span className="sm:hidden">Find Coach</span>
+            </button>
+            {sport.homeSessionPrice && (
+              <span className="text-lg sm:text-xl font-bold">
+                ₦{parseFloat(sport.homeSessionPrice).toLocaleString()}/session
+              </span>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Tabs - Mobile Responsive with Scroll */}
@@ -197,7 +227,13 @@ const SportDetail = () => {
                   ₦{parseFloat(pkg.totalPrice).toLocaleString()}
                 </div>
                 <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">{pkg.numberOfSessions} Sessions</p>
-                <button className="w-full bg-purple-600 text-white py-2 text-sm sm:text-base rounded-lg hover:bg-purple-700 transition-colors">
+                <button
+                  onClick={() => {
+                    if (!user) { navigate('/login'); return; }
+                    navigate(`/book-package/${pkg.id}`, { state: { sportId } });
+                  }}
+                  className="w-full bg-purple-600 text-white py-2 text-sm sm:text-base rounded-lg hover:bg-purple-700 transition-colors"
+                >
                   Book Package
                 </button>
               </div>

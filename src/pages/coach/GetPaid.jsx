@@ -17,8 +17,8 @@ import axios from 'axios';
 import { URL } from '../../url';
 import { useAuth } from '../../context/AuthContext';
 
-// Nigerian banks list
-const NIGERIAN_BANKS = [
+// Fallback banks list (used if API fetch fails)
+const FALLBACK_BANKS = [
     { code: '044', name: 'Access Bank' },
     { code: '063', name: 'Access Bank (Diamond)' },
     { code: '050', name: 'Ecobank Nigeria' },
@@ -29,13 +29,11 @@ const NIGERIAN_BANKS = [
     { code: '030', name: 'Heritage Bank' },
     { code: '301', name: 'Jaiz Bank' },
     { code: '082', name: 'Keystone Bank' },
-    { code: '014', name: 'MainStreet Bank' },
     { code: '076', name: 'Polaris Bank' },
     { code: '101', name: 'Providus Bank' },
     { code: '221', name: 'Stanbic IBTC Bank' },
     { code: '068', name: 'Standard Chartered Bank' },
     { code: '232', name: 'Sterling Bank' },
-    { code: '100', name: 'Suntrust Bank' },
     { code: '032', name: 'Union Bank of Nigeria' },
     { code: '033', name: 'United Bank For Africa' },
     { code: '215', name: 'Unity Bank' },
@@ -54,6 +52,31 @@ const AddAccountModal = ({ isOpen, onClose, onSave, loading }) => {
     const [errors, setErrors] = useState({});
     const [verifying, setVerifying] = useState(false);
     const [accountVerified, setAccountVerified] = useState(false);
+    const [banks, setBanks] = useState(FALLBACK_BANKS);
+    const [loadingBanks, setLoadingBanks] = useState(false);
+
+    // Fetch banks from Paystack via backend when modal opens
+    useEffect(() => {
+        if (isOpen) {
+            const fetchBanks = async () => {
+                setLoadingBanks(true);
+                try {
+                    const token = localStorage.getItem('access_token');
+                    const response = await axios.get(`${URL}/coach-banking/banks`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (response.data.success && response.data.data.length > 0) {
+                        setBanks(response.data.data);
+                    }
+                } catch (err) {
+                    console.error('Failed to fetch banks, using fallback list:', err);
+                } finally {
+                    setLoadingBanks(false);
+                }
+            };
+            fetchBanks();
+        }
+    }, [isOpen]);
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -105,7 +128,9 @@ const verifyAccount = async () => {
             return;
         }
 
-        onSave(formData);
+        // Include the bank name from the banks list
+        const selectedBank = banks.find(b => b.code === formData.bankCode);
+        onSave({ ...formData, bankName: selectedBank?.name || '' });
         setFormData({
             bankCode: '',
             accountNumber: '',
@@ -150,8 +175,8 @@ const verifyAccount = async () => {
                                 errors.bankCode ? 'border-red-500' : 'border-gray-300'
                             }`}
                         >
-                            <option value="">Choose your bank</option>
-                            {NIGERIAN_BANKS.map(bank => (
+                            <option value="">{loadingBanks ? 'Loading banks...' : 'Choose your bank'}</option>
+                            {banks.map(bank => (
                                 <option key={bank.code} value={bank.code}>{bank.name}</option>
                             ))}
                         </select>
@@ -407,7 +432,7 @@ const GetPaid = () => {
 
     // Get bank name from code
     const getBankName = (bankCode) => {
-        const bank = NIGERIAN_BANKS.find(b => b.code === bankCode);
+        const bank = FALLBACK_BANKS.find(b => b.code === bankCode);
         return bank ? bank.name : 'Unknown Bank';
     };
 
