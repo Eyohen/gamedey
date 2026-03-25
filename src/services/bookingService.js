@@ -45,7 +45,7 @@ class BookingService {
   // Get user bookings
   async getUserBookings(params = {}) {
     try {
-      const response = await axios.get(`${this.baseURL}/users/bookings`, {
+      const response = await axios.get(`${this.baseURL}/players/bookings`, {
         headers: this.getAuthHeaders(),
         params
       });

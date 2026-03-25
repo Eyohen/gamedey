@@ -52,7 +52,7 @@
 //         params.status = filters.status;
 //       }
 
-//       const response = await axios.get(`${URL}/users/wallet`, {
+//       const response = await axios.get(`${URL}/players/wallet`, {
 //         headers: {
 //           'Authorization': `Bearer ${token}`
 //         },
@@ -547,7 +547,7 @@ const TransactionHistory = () => {
         params.status = filters.status;
       }
 
-      const response = await axios.get(`${URL}/users/wallet`, {
+      const response = await axios.get(`${URL}/players/wallet`, {
         headers: {
           'Authorization': `Bearer ${token}`
         },

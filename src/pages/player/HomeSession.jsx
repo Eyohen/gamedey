@@ -77,8 +77,6 @@ const HomeSession = () => {
     );
   }
 
-  const homePrice = sport.homeSessionPrice ? parseFloat(sport.homeSessionPrice) : null;
-
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
       {error && (
@@ -89,33 +87,20 @@ const HomeSession = () => {
 
       {/* Header */}
       <div className="mb-4 sm:mb-6">
-        <button onClick={() => navigate(`/sport/${sportId}`)} className="flex items-center text-gray-600 mb-3 sm:mb-4 text-sm sm:text-base">
+        <button onClick={() => navigate(`/sport/${sportId}/home-session`)} className="flex items-center text-gray-600 mb-3 sm:mb-4 text-sm sm:text-base">
           <ChevronLeft size={18} className="sm:w-5 sm:h-5 mr-1" />
-          Back to {sport.name}
+          Back
         </button>
 
         <div className="flex items-center gap-2 sm:gap-4 mb-4">
-          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-purple-100 rounded-full flex items-center justify-center text-2xl sm:text-4xl flex-shrink-0">
-            <Home size={24} className="sm:w-8 sm:h-8 text-purple-600" />
+          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-green-100 rounded-full flex items-center justify-center text-2xl sm:text-4xl flex-shrink-0">
+            <Home size={24} className="sm:w-8 sm:h-8 text-green-600" />
           </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold">Home Session - {sport.name}</h1>
             <p className="text-sm sm:text-base text-gray-600">Book a coach to train you at your location</p>
           </div>
         </div>
-
-        {/* Price Banner */}
-        {homePrice && (
-          <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl p-4 sm:p-6 text-white mb-4 sm:mb-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm opacity-90 mb-1">Home Session Price</p>
-                <p className="text-2xl sm:text-3xl font-bold">₦{homePrice.toLocaleString()}<span className="text-base font-normal opacity-90">/session</span></p>
-              </div>
-              <Home size={40} className="opacity-30" />
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Coaches List */}
@@ -166,8 +151,8 @@ const HomeSession = () => {
 
                   {/* Price & Book Button */}
                   <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                    <span className="font-bold text-purple-600 text-sm sm:text-base">
-                      ₦{homePrice ? homePrice.toLocaleString() : parseFloat(coach.hourlyRate).toLocaleString()}/session
+                    <span className="font-bold text-green-600 text-sm sm:text-base">
+                      ₦{parseFloat(coach.homeSessionRate || coach.hourlyRate || 0).toLocaleString()}/session
                     </span>
                     <button
                       onClick={() => handleBookCoach(coach.id)}

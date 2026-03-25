@@ -55,7 +55,7 @@
 //       // Since there's no specific teams endpoint in your backend,
 //       // we'll simulate with user data and create a teams structure
 //       // In a real app, you'd have a teams endpoint
-//       const response = await axios.get(`${URL}/users/profile`, {
+//       const response = await axios.get(`${URL}/players/profile`, {
 //         headers: { 'Authorization': `Bearer ${token}` }
 //       });
 

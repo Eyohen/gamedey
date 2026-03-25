@@ -106,7 +106,7 @@
 //       if (!token) return;
 
 //       // This endpoint might not exist in your backend, so we'll handle the error gracefully
-//       const response = await axios.get(`${URL}/users/wallet`, {
+//       const response = await axios.get(`${URL}/players/wallet`, {
 //         headers: { 'Authorization': `Bearer ${token}` },
 //         params: {
 //           page: pagination.page,
@@ -699,7 +699,7 @@ const FinOverview = () => {
       const token = localStorage.getItem('access_token');
       if (!token) return;
 
-      const response = await axios.get(`${URL}/users/wallet`, {
+      const response = await axios.get(`${URL}/players/wallet`, {
         headers: { 'Authorization': `Bearer ${token}` },
         params: {
           page: pagination.page,

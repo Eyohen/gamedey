@@ -64,7 +64,7 @@
 //         return;
 //       }
 
-//       const response = await axios.get(`${URL}/users/profile`, {
+//       const response = await axios.get(`${URL}/players/profile`, {
 //         headers: { 'Authorization': `Bearer ${token}` }
 //       });
 
@@ -106,12 +106,12 @@
 //       if (!token) return;
 
 //       // Fetch bookings
-//       const bookingsResponse = await axios.get(`${URL}/users/bookings`, {
+//       const bookingsResponse = await axios.get(`${URL}/players/bookings`, {
 //         headers: { 'Authorization': `Bearer ${token}` }
 //       });
 
 //       // Fetch reviews
-//       const reviewsResponse = await axios.get(`${URL}/users/reviews`, {
+//       const reviewsResponse = await axios.get(`${URL}/players/reviews`, {
 //         headers: { 'Authorization': `Bearer ${token}` }
 //       });
 
@@ -145,7 +145,7 @@
 //       setSuccess('');
       
 //       const token = localStorage.getItem('access_token');
-//       const response = await axios.put(`${URL}/users/profile`, editForm, {
+//       const response = await axios.put(`${URL}/players/profile`, editForm, {
 //         headers: { 'Authorization': `Bearer ${token}` }
 //       });
 
@@ -830,7 +830,7 @@ const Profile = () => {
       }
 
       // Fetch user profile
-      const userResponse = await axios.get(`${URL}/users/profile`, {
+      const userResponse = await axios.get(`${URL}/players/profile`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -956,7 +956,7 @@ const Profile = () => {
       setSuccess('');
       
       const token = localStorage.getItem('access_token');
-      const response = await axios.put(`${URL}/users/profile`, editForm, {
+      const response = await axios.put(`${URL}/players/profile`, editForm, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 

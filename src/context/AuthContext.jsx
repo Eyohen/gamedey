@@ -30,8 +30,8 @@ const getUserRole = (userData) => {
     return 'facility';
   }
 
-  // Default to regular user
-  return 'user';
+  // Default to player
+  return 'player';
 };
 
 // Helper function to get dashboard route based on role
@@ -41,6 +41,7 @@ const getDashboardRoute = (role) => {
       return '/coach/dashboard';
     case 'facility':
       return '/facility/dashboard';
+    case 'player':
     case 'user':
     default:
       return '/explore';
@@ -101,7 +102,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Role checking helpers
-  const isUser = () => userRole === 'user';
+  const isPlayer = () => userRole === 'player';
+  const isUser = () => userRole === 'player' || userRole === 'user';
   const isCoach = () => userRole === 'coach';
   const isFacility = () => userRole === 'facility';
   const hasRole = (role) => userRole === role;
@@ -114,6 +116,7 @@ export const AuthProvider = ({ children }) => {
     updateUser,
     loading,
     isAuthenticated: !!user,
+    isPlayer,
     isUser,
     isCoach,
     isFacility,

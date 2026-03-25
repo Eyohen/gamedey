@@ -43,7 +43,7 @@
 //   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 //   const [isLoading, setIsLoading] = useState(false);
 //   const [error, setError] = useState('');
-//   const [selectedRole, setSelectedRole] = useState('user');
+//   const [selectedRole, setSelectedRole] = useState('player');
 
 //   const roles = [
 //     { id: 'user', label: 'User' },
@@ -128,7 +128,7 @@
 //       }
 
 //       // Determine endpoint based on role
-//       const endpoint = selectedRole === 'user' ? '/auth/register' : 
+//       const endpoint = selectedRole === 'player' ? '/auth/register' : 
 //                      selectedRole === 'coach' ? '/auth/register/coach' :
 //                      selectedRole === 'facility-owner' ? '/auth/register/facility' : '/auth/register';
 
@@ -655,7 +655,7 @@ const Register = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [selectedRole, setSelectedRole] = useState('user');
+  const [selectedRole, setSelectedRole] = useState('player');
   const [availableSports, setAvailableSports] = useState([]);
   const [sportsLoading, setSportsLoading] = useState(false);
 
@@ -689,7 +689,7 @@ const Register = () => {
   }, []);
 
   const roles = [
-    { id: 'user', label: 'User' },
+    { id: 'player', label: 'Player' },
     { id: 'facility-owner', label: 'Facility Owner' },
     { id: 'coach', label: 'Coach' }
   ];
@@ -819,7 +819,7 @@ const Register = () => {
     setIsLoading(true);
     try {
       // Determine endpoint based on role
-      const endpoint = selectedRole === 'user' ? '/auth/register' :
+      const endpoint = selectedRole === 'player' ? '/auth/register' :
                      selectedRole === 'coach' ? '/auth/register/coach' :
                      selectedRole === 'facility-owner' ? '/auth/register/facility' : '/auth/register';
 

@@ -41,10 +41,10 @@ const Login = () => {
       window.history.replaceState({}, document.title);
     }
   }, [location]);
-  const [selectedRole, setSelectedRole] = useState('user');
+  const [selectedRole, setSelectedRole] = useState('player');
 
   const roles = [
-    { id: 'user', label: 'User' },
+    { id: 'player', label: 'Player' },
     { id: 'facility-owner', label: 'Facility Owner' },
     { id: 'coach', label: 'Coach' }
   ];
@@ -94,8 +94,8 @@ const Login = () => {
             console.log('Detected role: facility');
             return 'facility';
           }
-          console.log('Detected role: user (default)');
-          return 'user';
+          console.log('Detected role: player (default)');
+          return 'player';
         };
 
         const detectedRole = getUserRole(user);
@@ -115,7 +115,7 @@ const Login = () => {
             case 'facility':
               navigate('/facility/dashboard', { replace: true });
               break;
-            case 'user':
+            case 'player':
             default:
               navigate('/explore', { replace: true });
               break;

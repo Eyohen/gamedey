@@ -54,6 +54,7 @@ const Profile = () => {
     bio: '',
     experience: '',
     hourlyRate: '',
+    homeSessionRate: '',
     specialties: [],
     certifications: [],
     location: {
@@ -370,6 +371,7 @@ const Profile = () => {
           bio: coachData.bio || '',
           experience: coachData.experience || '',
           hourlyRate: coachData.hourlyRate || '',
+          homeSessionRate: coachData.homeSessionRate || '',
           specialties: coachData.specialties || [],
           certifications: coachData.certifications || [],
           location: coachData.location || { city: '', state: '', country: '' }
@@ -412,6 +414,7 @@ const Profile = () => {
         bio: formData.bio,
         experience: parseInt(formData.experience) || 0,
         hourlyRate: parseFloat(formData.hourlyRate) || 0,
+        homeSessionRate: parseFloat(formData.homeSessionRate) || 0,
         specialties: formData.specialties,
         certifications: formData.certifications,
         location: formData.location,
@@ -766,7 +769,7 @@ const Profile = () => {
 
             <div>
               <label className='block text-sm font-medium text-gray-700 mb-1'>
-                Hourly Rate (₦)
+                Regular Hourly Rate (₦)
               </label>
               <input
                 type="number"
@@ -774,6 +777,22 @@ const Profile = () => {
                 onChange={(e) => handleInputChange('hourlyRate', e.target.value)}
                 disabled={!editMode}
                 min="0"
+                placeholder="Rate for facility/stadium sessions"
+                className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-50'
+              />
+            </div>
+
+            <div>
+              <label className='block text-sm font-medium text-gray-700 mb-1'>
+                Home Session Rate (₦)
+              </label>
+              <input
+                type="number"
+                value={formData.homeSessionRate}
+                onChange={(e) => handleInputChange('homeSessionRate', e.target.value)}
+                disabled={!editMode}
+                min="0"
+                placeholder="Rate for sessions at player's location"
                 className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-50'
               />
             </div>

@@ -147,7 +147,7 @@
 //         return;
 //       }
 
-//       const response = await axios.get(`${URL}/users/reviews`, {
+//       const response = await axios.get(`${URL}/players/reviews`, {
 //         headers: {
 //           'Authorization': `Bearer ${token}`
 //         }
@@ -175,7 +175,7 @@
 //         return;
 //       }
 
-//       const response = await axios.get(`${URL}/users/bookings`, {
+//       const response = await axios.get(`${URL}/players/bookings`, {
 //         params: { status: 'completed' },
 //         headers: {
 //           'Authorization': `Bearer ${token}`
@@ -756,7 +756,7 @@ const Reviews = () => {
         return;
       }
 
-      const response = await axios.get(`${URL}/users/reviews`, {
+      const response = await axios.get(`${URL}/players/reviews`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -781,7 +781,7 @@ const Reviews = () => {
         return;
       }
 
-      const response = await axios.get(`${URL}/users/bookings`, {
+      const response = await axios.get(`${URL}/players/bookings`, {
         params: { status: 'completed' },
         headers: { 'Authorization': `Bearer ${token}` }
       });

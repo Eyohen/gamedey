@@ -54,7 +54,7 @@ const Bookings = () => {
         params.status = 'confirmed';
       }
       
-      const response = await axios.get(`${URL}/users/bookings`, {
+      const response = await axios.get(`${URL}/players/bookings`, {
         params,
         headers: {
           'Authorization': `Bearer ${token}`
