@@ -11,6 +11,7 @@ import {
   Moon,
   LayoutDashboard,
   Search,
+  MessageSquare,
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -100,6 +101,7 @@ const DashboardLayout = ({ children }) => {
     { path: "/explore", title: "Explore", icon: <LayoutDashboard size={20} /> },
     { path: "/bookings", title: "Bookings", icon: <img src={facilities} alt="Bookings" className="w-5 h-5" /> },
     { path: "/teams", title: "Teams", icon: <img src={bookings} alt="Teams" className="w-5 h-5" /> },
+    { path: "/messages", title: "Messages", icon: <MessageSquare size={20} /> },
     { path: "/community", title: "Community", icon: <img src={community} alt="Community" className="w-5 h-5" /> },
     { path: "/transaction-history", title: "Transaction History", icon: <img src={financialoverview} alt="Transactions" className="w-5 h-5" /> },
     { path: "/reviews", title: "Reviews", icon: <img src={getpaid} alt="Reviews" className="w-5 h-5" /> },

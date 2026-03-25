@@ -13,7 +13,8 @@ import {
   Watch,
   WalletMinimal,
   OctagonAlert,
-  Camera
+  Camera,
+  MessageSquare
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -188,6 +189,7 @@ const DashboardLayout = ({ children }) => {
     { path: "/coach/dashboard", title: "Dashboard", icon: <LayoutDashboard size={20} /> },
     { path: "/coach/bookings", title: "Bookings", icon: <img src={facilities} alt="facilities" className="w-5 h-5" /> },
     { path: "/coach/teams", title: "Teams", icon: <img src={bookings} alt="bookings" className="w-5 h-5" /> },
+    { path: "/coach/messages", title: "Messages", icon: <MessageSquare size={20} /> },
     { path: "/coach/community", title: "Community", icon: <img src={community} alt="community" className="w-5 h-5" /> },
     // { path: "/coach/events", title: "Events", icon: <img src={community} alt="events" className="w-5 h-5" /> },
     { path: "/coach/financial-overview", title: "Financial Overview", icon: <WalletMinimal size={20} /> },

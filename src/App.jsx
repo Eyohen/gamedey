@@ -19,6 +19,7 @@ import ResetPassword from './pages/shared/ResetPassword';
 import VerifyEmail from './pages/shared/VerifyEmail';
 import NotFoundPage from './pages/shared/NotFoundPage';
 import TermsAndConditions from './pages/shared/TermsAndConditions';
+import Messages from './pages/shared/Messages';
 
 // Player Pages
 import PlayerExplore from './pages/player/Explore';
@@ -305,6 +306,14 @@ function App() {
             </ProtectedRoute>
           } />
 
+          <Route path="/messages" element={
+            <ProtectedRoute allowedRoles={['player']}>
+              <PlayerDashboardLayout>
+                <Messages />
+              </PlayerDashboardLayout>
+            </ProtectedRoute>
+          } />
+
           {/* ==================== COACH ROUTES ==================== */}
           <Route path="/coach/dashboard" element={
             <ProtectedRoute allowedRoles={['coach']}>
@@ -342,6 +351,14 @@ function App() {
             <ProtectedRoute allowedRoles={['coach']}>
               <CoachDashboardLayout>
                 <CoachProfile />
+              </CoachDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/coach/messages" element={
+            <ProtectedRoute allowedRoles={['coach']}>
+              <CoachDashboardLayout>
+                <Messages />
               </CoachDashboardLayout>
             </ProtectedRoute>
           } />

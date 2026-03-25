@@ -199,7 +199,8 @@ const ChatBox = ({ conversation, onClose }) => {
           ) : (
             <>
               {socketMessages.map((message, index) => {
-                const isOwnMessage = message.userId === localStorage.getItem('userId');
+                const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+                const isOwnMessage = message.userId === userData.id;
                 return (
                   <div
                     key={message.id || index}
