@@ -218,15 +218,17 @@ const Bookings = () => {
   const formatDateTime = (dateString) => {
     const date = new Date(dateString);
     return {
-      date: date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
+      date: date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        timeZone: 'Africa/Lagos'
       }),
-      time: date.toLocaleTimeString('en-US', { 
-        hour: '2-digit', 
+      time: date.toLocaleTimeString('en-US', {
+        hour: '2-digit',
         minute: '2-digit',
-        hour12: true 
+        hour12: true,
+        timeZone: 'Africa/Lagos'
       })
     };
   };
@@ -552,7 +554,7 @@ const getUpcomingCount = () => bookings.filter(booking => isBookingUpcoming(book
                   <div className="flex items-center">
                     <DollarSign size={14} className="text-gray-400 mr-2" />
                     <span className="text-sm font-medium text-gray-900">
-                      ₦{parseFloat(booking.totalAmount).toLocaleString()}
+                      ₦{parseFloat(booking.coachAmount || booking.totalAmount).toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -560,7 +562,7 @@ const getUpcomingCount = () => bookings.filter(booking => isBookingUpcoming(book
                 {/* Card Actions */}
                 <div className="mt-4 flex gap-2">
                   <button
-                  onClick={() => navigate(`/bookings/${booking.id}`)}
+                  onClick={() => navigate(`/coach/bookings/${booking.id}`)}
 
                     className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-purple-600 border border-purple-200 rounded-lg hover:bg-purple-50 transition-colors text-sm"
                   >
@@ -728,7 +730,7 @@ const getUpcomingCount = () => bookings.filter(booking => isBookingUpcoming(book
 
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
-                          ₦{parseFloat(booking.totalAmount).toLocaleString()}
+                          ₦{parseFloat(booking.coachAmount || booking.totalAmount).toLocaleString()}
                         </div>
                         <div className={`text-xs ${
                           booking.paymentStatus === 'paid' ? 'text-green-600' : 'text-red-600'
@@ -747,7 +749,7 @@ const getUpcomingCount = () => bookings.filter(booking => isBookingUpcoming(book
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center space-x-2">
                           <button
-                            onClick={() => navigate(`/bookings/${booking.id}`)}
+                            onClick={() => navigate(`/coach/bookings/${booking.id}`)}
                             // onClick={() => alert(`Viewing details for booking ${booking.id}`)}
                             className="text-purple-600 hover:text-purple-900 flex items-center"
                             title="View Details"

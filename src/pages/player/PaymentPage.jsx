@@ -300,12 +300,8 @@ const PaymentPage = () => {
           {/* Price Breakdown */}
           <div className="border-t pt-4">
             <div className="flex justify-between mb-2">
-              <span className="text-gray-600">Subtotal:</span>
-              <span>₦{parseFloat(booking.totalAmount).toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between mb-2">
-              <span className="text-gray-600">Service fee:</span>
-              <span>₦0</span>
+              <span className="text-gray-600">Service Fee (7.5%):</span>
+              <span>₦{parseFloat(booking.serviceFee || (booking.totalAmount * 0.075 / 1.075)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
             <div className="flex justify-between font-semibold text-lg border-t pt-2">
               <span>Total:</span>

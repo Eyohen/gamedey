@@ -52,6 +52,7 @@ import BookPackage from './pages/player/BookPackage';
 // Coach Pages
 import CoachDashboard from './pages/coach/Dashboard';
 import CoachBookings from './pages/coach/Bookings';
+import CoachBookingDetails from './pages/coach/BookingDetails';
 import CoachSessions from './pages/coach/Sessions';
 import CoachProfile from './pages/coach/Profile';
 import CoachTransactionHistory from './pages/coach/TransactionHistory';
@@ -327,6 +328,14 @@ function App() {
             <ProtectedRoute allowedRoles={['coach']}>
               <CoachDashboardLayout>
                 <CoachBookings />
+              </CoachDashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/coach/bookings/:bookingId" element={
+            <ProtectedRoute allowedRoles={['coach']}>
+              <CoachDashboardLayout>
+                <CoachBookingDetails />
               </CoachDashboardLayout>
             </ProtectedRoute>
           } />
