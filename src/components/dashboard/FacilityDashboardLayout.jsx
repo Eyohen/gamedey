@@ -205,7 +205,8 @@ import {
   Menu,
   X,
   LogOut,
-  LayoutDashboard
+  LayoutDashboard,
+  MessageSquare
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -294,6 +295,7 @@ const DashboardLayout = ({ children }) => {
     { path: "/facility/dashboard", title: "Dashboard", icon: <LayoutDashboard size={isMobile ? 18 : 20} /> },
     { path: "/facility/manage", title: "Facilities", icon: <img src={facilities} className="w-4 h-4 sm:w-5 sm:h-5" alt="Facilities" /> },
     { path: "/facility/bookings", title: "Bookings", icon: <img src={bookings} className="w-4 h-4 sm:w-5 sm:h-5" alt="Bookings" /> },
+    { path: "/facility/messages", title: "Messages", icon: <MessageSquare size={isMobile ? 18 : 20} /> },
     { path: "/facility/community", title: "Community", icon: <img src={community} className="w-4 h-4 sm:w-5 sm:h-5" alt="Community" /> },
     { path: "/facility/financial-overview", title: "Financial Overview", icon: <img src={financialoverview} className="w-4 h-4 sm:w-5 sm:h-5" alt="Financial" /> },
     { path: "/facility/profile", title: "Profile", icon: <img src={reviews} className="w-4 h-4 sm:w-5 sm:h-5" alt="Profile" /> },

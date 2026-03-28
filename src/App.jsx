@@ -477,6 +477,14 @@ function App() {
             </ProtectedRoute>
           } />
 
+          <Route path="/facility/messages" element={
+            <ProtectedRoute allowedRoles={['facility']}>
+              <FacilityDashboardLayout>
+                <Messages />
+              </FacilityDashboardLayout>
+            </ProtectedRoute>
+          } />
+
           <Route path="/facility/profile" element={
             <ProtectedRoute allowedRoles={['facility']}>
               <FacilityDashboardLayout>

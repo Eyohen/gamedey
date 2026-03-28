@@ -8,7 +8,7 @@ const ChatContext = createContext();
 
 export const ChatProvider = ({ children }) => {
   const authContext = useAuth();
-  const { user, token } = authContext || {};
+  const { user } = authContext || {};
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [activeConversation, setActiveConversation] = useState(null);
@@ -18,6 +18,7 @@ export const ChatProvider = ({ children }) => {
 
   // Initialize Socket.IO connection
   useEffect(() => {
+    const token = localStorage.getItem('access_token');
     if (user && token) {
       // Create socket connection - remove /api from BASE_URL for Socket.IO
       const socketUrl = BASE_URL.replace(/\/api$/, '');
@@ -104,7 +105,7 @@ export const ChatProvider = ({ children }) => {
         newSocket.close();
       };
     }
-  }, [user, token]);
+  }, [user]);
 
   // Join a conversation
   const joinConversation = useCallback((conversationId) => {

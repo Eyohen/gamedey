@@ -8,6 +8,7 @@ const getAuthToken = () => {
 };
 
 // Create axios instance with default config
+// BASE_URL already includes /api (e.g. http://localhost:3000/api)
 const apiClient = axios.create({
   baseURL: BASE_URL,
   headers: {
