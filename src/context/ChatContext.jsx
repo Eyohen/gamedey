@@ -1,8 +1,9 @@
 // context/ChatContext.jsx
-import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 import { BASE_URL } from '../url';
+import { getConversations } from '../services/chatService';
 
 const ChatContext = createContext();
 
@@ -12,6 +13,7 @@ export const ChatProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [activeConversation, setActiveConversation] = useState(null);
+  const activeConversationRef = useRef(null);
   const [messages, setMessages] = useState([]);
   const [typingUsers, setTypingUsers] = useState(new Set());
   const [unreadCounts, setUnreadCounts] = useState({});
@@ -33,9 +35,21 @@ export const ChatProvider = ({ children }) => {
       });
 
       // Connection events
-      newSocket.on('connect', () => {
+      newSocket.on('connect', async () => {
         console.log('✅ Connected to chat server');
         setIsConnected(true);
+
+        // Auto-join all user's conversation rooms for real-time updates
+        try {
+          const res = await getConversations({ status: 'active', limit: 100 });
+          const convos = res.data?.conversations || (Array.isArray(res.data) ? res.data : []);
+          convos.forEach(conv => {
+            newSocket.emit('join-conversation', { conversationId: conv.id });
+          });
+          console.log(`📬 Auto-joined ${convos.length} conversation rooms`);
+        } catch (err) {
+          console.error('Failed to auto-join conversations:', err);
+        }
       });
 
       newSocket.on('disconnect', () => {
@@ -54,7 +68,7 @@ export const ChatProvider = ({ children }) => {
 
       newSocket.on('new-message', (data) => {
         console.log('New message received:', data);
-        if (data.conversationId === activeConversation) {
+        if (data.conversationId === activeConversationRef.current) {
           setMessages(prev => [...prev, data.message]);
         } else {
           // Increment unread count for this conversation
@@ -118,6 +132,7 @@ export const ChatProvider = ({ children }) => {
       // Join new conversation
       socket.emit('join-conversation', { conversationId });
       setActiveConversation(conversationId);
+      activeConversationRef.current = conversationId;
 
       // Reset unread count for this conversation
       setUnreadCounts(prev => ({
@@ -133,6 +148,7 @@ export const ChatProvider = ({ children }) => {
       socket.emit('leave-conversation', { conversationId });
       if (activeConversation === conversationId) {
         setActiveConversation(null);
+        activeConversationRef.current = null;
         setMessages([]);
         setTypingUsers(new Set());
       }

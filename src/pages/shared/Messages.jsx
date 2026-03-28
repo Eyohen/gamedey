@@ -5,7 +5,7 @@ import { getConversations } from '../../services/chatService';
 import ChatBox from '../../components/ChatBox';
 
 const MessagesInner = () => {
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -32,11 +32,17 @@ const MessagesInner = () => {
   };
 
   const getConversationName = (conv) => {
+    // Coach viewing: show the player's name
+    if (userRole === 'coach') {
+      if (conv.user) return `${conv.user.firstName} ${conv.user.lastName}`;
+    }
+    // Facility viewing: show the player's name
+    if (userRole === 'facility') {
+      if (conv.user) return `${conv.user.firstName} ${conv.user.lastName}`;
+    }
+    // Player viewing: show coach or facility name
     if (conv.coach?.User) {
       return `Coach ${conv.coach.User.firstName} ${conv.coach.User.lastName}`;
-    }
-    if (conv.coach?.firstName) {
-      return `Coach ${conv.coach.firstName} ${conv.coach.lastName}`;
     }
     if (conv.facility?.name) {
       return conv.facility.name;
@@ -48,6 +54,11 @@ const MessagesInner = () => {
   };
 
   const getConversationAvatar = (conv) => {
+    // Coach/Facility viewing: show player's avatar
+    if (userRole === 'coach' || userRole === 'facility') {
+      if (conv.user?.profileImage) return conv.user.profileImage;
+    }
+    // Player viewing: show coach/facility avatar
     if (conv.coach?.User?.profileImage) return conv.coach.User.profileImage;
     if (conv.coach?.profileImage) return conv.coach.profileImage;
     if (conv.facility?.images?.[0]) return conv.facility.images[0];
