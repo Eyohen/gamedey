@@ -3,7 +3,6 @@ import { MessageSquare } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { getConversations } from '../../services/chatService';
 import ChatBox from '../../components/ChatBox';
-import { ChatProvider } from '../../context/ChatContext';
 
 const MessagesInner = () => {
   const { user } = useAuth();
@@ -21,7 +20,9 @@ const MessagesInner = () => {
       setLoading(true);
       setError('');
       const response = await getConversations({ status: 'active', limit: 50 });
-      setConversations(response.data || []);
+      // Backend returns { success, data: { conversations: [...], pagination } }
+      const convos = response.data?.conversations || (Array.isArray(response.data) ? response.data : []);
+      setConversations(convos);
     } catch (err) {
       console.error('Error fetching conversations:', err);
       setError('Failed to load conversations');
@@ -166,10 +167,5 @@ const MessagesInner = () => {
   );
 };
 
-const Messages = () => (
-  <ChatProvider>
-    <MessagesInner />
-  </ChatProvider>
-);
-
-export default Messages;
+// ChatProvider already wraps the entire app in main.jsx
+export default MessagesInner;
